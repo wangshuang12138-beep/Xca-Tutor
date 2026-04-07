@@ -3,8 +3,6 @@ name: Build macOS App
 on:
   push:
     branches: [ master, main ]
-  pull_request:
-    branches: [ master, main ]
   workflow_dispatch:
 
 jobs:
@@ -14,53 +12,57 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Select Xcode
-      run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
     
-    - name: Show Swift version
-      run: swift --version
-    
-    - name: Cache Swift packages
-      uses: actions/cache@v3
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
       with:
-        path: .build
-        key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
-        restore-keys: |
-          ${{ runner.os }}-spm-
+        xcode-version: '15.2'
     
-    - name: Resolve dependencies
-      run: swift package resolve
-    
-    - name: Build Debug
-      run: swift build -v 2>&1
-      continue-on-error: true
-    
-    - name: Build Release
-      run: swift build -c release -v 2>&1
-      continue-on-error: true
-    
-    - name: Check build products
+    - name: Show environment
       run: |
-        ls -la .build/debug/ 2>/dev/null || true
-        ls -la .build/release/ 2>/dev/null || true
+        echo "=== Swift Version ==="
+        swift --version
+        echo "=== Xcode Version ==="
+        xcodebuild -version
+        echo "=== Current Directory ==="
+        pwd
+        ls -la
+    
+    - name: Clean and Build
+      run: |
+        rm -rf .build
+        swift package resolve
+        swift build 2>&1 | tee build.log
+      continue-on-error: true
+    
+    - name: Upload Build Log
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-log
+        path: build.log
+      if: always()
+    
+    - name: Check if build succeeded
+      run: |
+        if [ -f .build/debug/XcaTutor ]; then
+          echo "Build succeeded!"
+          ls -la .build/debug/
+        else
+          echo "Build failed - checking log..."
+          cat build.log | tail -100
+          exit 1
+        fi
     
     - name: Create App Bundle
-      if: success()
       run: |
         mkdir -p XcaTutor.app/Contents/MacOS
         mkdir -p XcaTutor.app/Contents/Resources
         mkdir -p XcaTutor.app/Contents/Frameworks
         
         # 复制可执行文件
-        if [ -f .build/release/XcaTutor ]; then
-          cp .build/release/XcaTutor XcaTutor.app/Contents/MacOS/
-        elif [ -f .build/debug/XcaTutor ]; then
-          cp .build/debug/XcaTutor XcaTutor.app/Contents/MacOS/
-        fi
+        cp .build/debug/XcaTutor XcaTutor.app/Contents/MacOS/
         
         # 查找并复制依赖库
-        find .build/release -name "*.dylib" -exec cp {} XcaTutor.app/Contents/Frameworks/ \; 2>/dev/null || true
         find .build/debug -name "*.dylib" -exec cp {} XcaTutor.app/Contents/Frameworks/ \; 2>/dev/null || true
         
         # 创建 Info.plist
@@ -88,41 +90,35 @@ jobs:
             <key>LSMinimumSystemVersion</key>
             <string>13.0</string>
             <key>NSMicrophoneUsageDescription</key>
-            <string>需要麦克风权限进行语音练习</string>
+            <string>Need microphone for voice practice</string>
             <key>NSHighResolutionCapable</key>
             <true/>
         </dict>
         </plist>
         EOF
         
-        # 创建 PkgInfo
         echo "APPL????" > XcaTutor.app/Contents/PkgInfo
+        chmod +x XcaTutor.app/Contents/MacOS/XcaTutor
         
-        # 设置权限
-        chmod +x XcaTutor.app/Contents/MacOS/XcaTutor 2>/dev/null || true
+        echo "=== App Bundle Created ==="
+        ls -la XcaTutor.app/Contents/MacOS/
     
-    - name: Package
-      run: |
-        zip -r XcaTutor-v0.1.0-macOS.zip XcaTutor.app || true
+    - name: Package App
+      run: zip -r XcaTutor-macOS.zip XcaTutor.app
     
-    - name: Upload Artifact
+    - name: Upload App Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: XcaTutor-macOS
-        path: XcaTutor-v0.1.0-macOS.zip
-        retention-days: 30
-      if: always()
+        name: XcaTutor-app
+        path: XcaTutor-macOS.zip
     
     - name: Create Release
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master' && success()
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: v0.1.0-build-${{ github.run_number }}
+        tag_name: v0.1.0-${{ github.run_number }}
         name: Xca Tutor v0.1.0 Build ${{ github.run_number }}
-        files: XcaTutor-v0.1.0-macOS.zip
+        files: XcaTutor-macOS.zip
         draft: false
         prerelease: true
-        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
