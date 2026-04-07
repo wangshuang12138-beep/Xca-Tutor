@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "XcaTutor",
     platforms: [
-        .macOS(.v13)
+        .macOS(.v12)
     ],
     products: [
         .executable(name: "XcaTutor", targets: ["XcaTutor"])
@@ -20,6 +20,12 @@ let package = Package(
             name: "XcaTutor",
             dependencies: [
                 .product(name: "FMDB", package: "fmdb")
+            ],
+            linkerSettings: [
+                .linkedFramework("AppKit"),
+                .linkedFramework("SwiftUI"),
+                .linkedFramework("AVFoundation"),
+                .linkedFramework("AVFAudio")
             ]
         )
     ]
