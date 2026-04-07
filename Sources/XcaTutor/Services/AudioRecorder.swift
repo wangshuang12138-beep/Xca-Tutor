@@ -112,12 +112,13 @@ class AudioRecorder: NSObject, AudioRecorderProtocol {
         silenceTimer?.invalidate()
         silenceTimer = nil
         
-        // 读取录音数据
+        // 读取录音数据并添加 WAV 头
         if let url = recordingURL {
             do {
-                let data = try Data(contentsOf: url)
-                print("🎙️ 录音完成，大小: \(data.count) bytes")
-                onRecordingFinished?(data)
+                let pcmData = try Data(contentsOf: url)
+                let wavData = createWAVData(pcmData: pcmData, sampleRate: 16000, channels: 1, bitsPerSample: 16)
+                print("🎙️ 录音完成，PCM: \(pcmData.count) bytes, WAV: \(wavData.count) bytes")
+                onRecordingFinished?(wavData)
                 
                 // 清理临时文件
                 try? FileManager.default.removeItem(at: url)
@@ -128,6 +129,39 @@ class AudioRecorder: NSObject, AudioRecorderProtocol {
         
         audioFile = nil
         recordingURL = nil
+    }
+    
+    // MARK: - WAV Header Creation
+    
+    private func createWAVData(pcmData: Data, sampleRate: UInt32, channels: UInt16, bitsPerSample: UInt16) -> Data {
+        let byteRate = sampleRate * UInt32(channels) * UInt32(bitsPerSample) / 8
+        let blockAlign = channels * bitsPerSample / 8
+        let dataSize = UInt32(pcmData.count)
+        let totalSize = dataSize + 36
+        
+        var wavData = Data()
+        
+        // RIFF header
+        wavData.append("RIFF".data(using: .ascii)!)
+        wavData.append(totalSize.littleEndianBytes)
+        wavData.append("WAVE".data(using: .ascii)!)
+        
+        // fmt subchunk
+        wavData.append("fmt ".data(using: .ascii)!)
+        wavData.append(UInt32(16).littleEndianBytes)  // Subchunk1Size
+        wavData.append(UInt16(1).littleEndianBytes)   // AudioFormat (PCM)
+        wavData.append(channels.littleEndianBytes)
+        wavData.append(sampleRate.littleEndianBytes)
+        wavData.append(byteRate.littleEndianBytes)
+        wavData.append(blockAlign.littleEndianBytes)
+        wavData.append(bitsPerSample.littleEndianBytes)
+        
+        // data subchunk
+        wavData.append("data".data(using: .ascii)!)
+        wavData.append(dataSize.littleEndianBytes)
+        wavData.append(pcmData)
+        
+        return wavData
     }
     
     // MARK: - Audio Processing
@@ -203,5 +237,21 @@ enum AudioError: Error, LocalizedError {
         case .engineStartFailed:
             return "启动音频引擎失败"
         }
+    }
+}
+
+// MARK: - Integer Extensions for Little Endian
+
+extension UInt32 {
+    var littleEndianBytes: Data {
+        var value = self.littleEndian
+        return Data(bytes: &value, count: MemoryLayout<UInt32>.size)
+    }
+}
+
+extension UInt16 {
+    var littleEndianBytes: Data {
+        var value = self.littleEndian
+        return Data(bytes: &value, count: MemoryLayout<UInt16>.size)
     }
 }
