@@ -13,14 +13,13 @@ protocol AudioPlayerProtocol {
     func stop()
 }
 
-// MARK: - Audio Player
+// MARK: - Audio Player (macOS compatible)
 
 class AudioPlayer: NSObject, AudioPlayerProtocol {
     
     // MARK: - Properties
     
     private var player: AVAudioPlayer?
-    private var playerCompletionObserver: NSObjectProtocol?
     
     private(set) var isPlaying = false
     var onPlaybackFinished: (() -> Void)?
@@ -30,36 +29,7 @@ class AudioPlayer: NSObject, AudioPlayerProtocol {
     
     override init() {
         super.init()
-        setupAudioSession()
-        setupNotifications()
-    }
-    
-    deinit {
-        if let observer = playerCompletionObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
-    }
-    
-    // MARK: - Setup
-    
-    private func setupAudioSession() {
-        let session = AVAudioSession.sharedInstance()
-        do {
-            try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
-            try session.setActive(true)
-        } catch {
-            print("Audio session setup failed: \(error)")
-        }
-    }
-    
-    private func setupNotifications() {
-        playerCompletionObserver = NotificationCenter.default.addObserver(
-            forName: .AVPlayerItemDidPlayToEndTime,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.handlePlaybackFinished()
-        }
+        // macOS 不需要设置 AVAudioSession
     }
     
     // MARK: - Playback Control
@@ -105,11 +75,6 @@ class AudioPlayer: NSObject, AudioPlayerProtocol {
         player?.stop()
         player = nil
         isPlaying = false
-    }
-    
-    private func handlePlaybackFinished() {
-        isPlaying = false
-        onPlaybackFinished?()
     }
 }
 

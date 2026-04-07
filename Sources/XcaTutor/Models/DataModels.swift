@@ -100,42 +100,6 @@ struct VocabularyHighlight: Codable {
     let context: String
 }
 
-struct UserSettings: Codable {
-    var apiKey: String
-    var useProxy: Bool
-    
-    // 模型参数
-    var chatModel: String
-    var temperature: Double
-    var maxTokens: Int
-    var voiceName: String
-    var whisperModel: String
-    
-    // 练习偏好
-    var defaultDifficulty: String
-    var autoUpgrade: Bool
-    var correctionStrictness: String
-    
-    // UI
-    var theme: String
-    var language: String
-    
-    static let `default` = UserSettings(
-        apiKey: "",
-        useProxy: false,
-        chatModel: "gpt-4o",
-        temperature: 0.7,
-        maxTokens: 2000,
-        voiceName: "alloy",
-        whisperModel: "whisper-1",
-        defaultDifficulty: "B1",
-        autoUpgrade: true,
-        correctionStrictness: "standard",
-        theme: "auto",
-        language: "zh-CN"
-    )
-}
-
 // MARK: - CEFR Levels
 enum CEFRLevel: String, CaseIterable {
     case a1 = "A1"

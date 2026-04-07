@@ -201,33 +201,9 @@ struct MessageBubble: View {
                     .background(isUser ? Color.blue : Color.gray.opacity(0.2))
                     .foregroundColor(isUser ? .white : .primary)
                     .cornerRadius(16)
-                    .cornerRadius(isUser ? 4 : 16, corners: [.bottomTrailing])
-                    .cornerRadius(isUser ? 16 : 4, corners: [.bottomLeading])
             }
             
             if !isUser { Spacer() }
         }
-    }
-}
-
-// MARK: - Corner Radius Extension
-
-extension View {
-    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
-        clipShape(RoundedCorner(radius: radius, corners: corners))
-    }
-}
-
-struct RoundedCorner: Shape {
-    var radius: CGFloat = .infinity
-    var corners: UIRectCorner = .allCorners
-    
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(
-            roundedRect: rect,
-            byRoundingCorners: corners,
-            cornerRadii: CGSize(width: radius, height: radius)
-        )
-        return Path(path.cgPath)
     }
 }

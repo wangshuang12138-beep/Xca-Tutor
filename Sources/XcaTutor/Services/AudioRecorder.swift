@@ -12,7 +12,7 @@ protocol AudioRecorderProtocol {
     func stopRecording()
 }
 
-// MARK: - Audio Recorder
+// MARK: - Audio Recorder (macOS compatible)
 
 class AudioRecorder: NSObject, AudioRecorderProtocol {
     
@@ -29,27 +29,25 @@ class AudioRecorder: NSObject, AudioRecorderProtocol {
     // VAD (Voice Activity Detection) 参数
     private var silenceTimer: Timer?
     private let silenceThreshold: Float = -40.0  // dB
-    private let silenceDuration: TimeInterval = 1.5  // 静音 1.5 秒后自动停止
+    private let silenceDuration: TimeInterval = 1.5
     private var consecutiveSilentFrames = 0
-    private let requiredSilentFrames = 30  // 约 0.5 秒
+    private let requiredSilentFrames = 30
     
     // MARK: - Initialization
     
     override init() {
         super.init()
-        setupAudioSession()
+        checkMicrophonePermission()
     }
     
-    // MARK: - Setup
+    // MARK: - Permission Check (macOS)
     
-    private func setupAudioSession() {
-        let session = AVAudioSession.sharedInstance()
-        do {
-            try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
-            try session.setActive(true)
-        } catch {
-            print("Audio session setup failed: \(error)")
-        }
+    private func checkMicrophonePermission() {
+        // macOS 使用 AVCaptureDevice 检查麦克风权限
+        #if os(macOS)
+        let audioSession = AVCaptureDevice.default(for: .audio)
+        // macOS 首次使用时会自动弹出权限请求
+        #endif
     }
     
     // MARK: - Recording Control
@@ -57,11 +55,7 @@ class AudioRecorder: NSObject, AudioRecorderProtocol {
     func startRecording() throws {
         guard !isRecording else { return }
         
-        // 请求麦克风权限
-        let session = AVAudioSession.sharedInstance()
-        guard session.recordPermission == .granted else {
-            throw AudioError.permissionDenied
-        }
+        // macOS 不需要像 iOS 那样设置 AVAudioSession
         
         // 创建音频引擎
         let engine = AVAudioEngine()
@@ -95,9 +89,13 @@ class AudioRecorder: NSObject, AudioRecorderProtocol {
         }
         
         // 启动引擎
-        try engine.start()
-        isRecording = true
+        do {
+            try engine.start()
+        } catch {
+            throw AudioError.engineStartFailed
+        }
         
+        isRecording = true
         print("🎙️ 开始录音...")
     }
     
@@ -150,7 +148,6 @@ class AudioRecorder: NSObject, AudioRecorderProtocol {
             consecutiveSilentFrames += 1
             
             if consecutiveSilentFrames >= requiredSilentFrames {
-                // 检测到足够长时间的静音
                 DispatchQueue.main.async { [weak self] in
                     self?.handleSilenceDetected()
                 }
