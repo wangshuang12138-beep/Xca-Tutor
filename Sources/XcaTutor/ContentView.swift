@@ -6,29 +6,32 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             // 主界面
-            NavigationView {
-                Sidebar()
-                    .frame(minWidth: 180, maxWidth: 200)
-                
-                ContentArea()
-                    .frame(minWidth: 700)
-            }
-            .frame(minWidth: 900, minHeight: 600)
-            .sheet(isPresented: $appState.showSceneSelection) {
-                SceneSelectionView()
-                    .frame(minWidth: 800, minHeight: 600)
-            }
-            .disabled(appState.currentConversation != nil)
-            .opacity(appState.currentConversation != nil ? 0.3 : 1)
+            mainView
             
             // 练习界面（全屏覆盖）
             if let conversation = appState.currentConversation {
                 PracticeView(conversation: conversation)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color(NSColor.windowBackgroundColor))
-                    .transition(.move(edge: .bottom))
-                    .zIndex(1)
+                    .transition(.opacity)
+                    .zIndex(100)
             }
+        }
+        .frame(minWidth: 900, minHeight: 600)
+    }
+    
+    @ViewBuilder
+    private var mainView: some View {
+        NavigationView {
+            Sidebar()
+                .frame(minWidth: 180, maxWidth: 200)
+            
+            ContentArea()
+                .frame(minWidth: 700)
+        }
+        .sheet(isPresented: $appState.showSceneSelection) {
+            SceneSelectionView()
+                .frame(minWidth: 800, minHeight: 600)
         }
     }
 }

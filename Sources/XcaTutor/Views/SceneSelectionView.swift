@@ -38,9 +38,11 @@ struct SceneSelectionView: View {
         // 保存到数据库
         _ = DatabaseManager.shared.saveConversation(conversation)
         
-        // 关闭选择窗口，打开练习窗口
+        // 先关闭 sheet，延迟设置 conversation
         dismiss()
-        appState.currentConversation = conversation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            appState.currentConversation = conversation
+        }
     }
 }
 
