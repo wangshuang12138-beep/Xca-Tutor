@@ -30,17 +30,23 @@ struct SceneSelectionView: View {
     }
     
     private func startPractice(scene: Scene) {
+        print("🎯 开始练习: \(scene.name)")
+        
         let conversation = Conversation(
             sceneId: scene.id,
             difficulty: SettingsManager.shared.settings.defaultDifficulty
         )
         
         // 保存到数据库
-        _ = DatabaseManager.shared.saveConversation(conversation)
+        let saved = DatabaseManager.shared.saveConversation(conversation)
+        print("💾 保存对话: \(saved ? "成功" : "失败")")
         
         // 先关闭 sheet，延迟设置 conversation
+        print("🔒 关闭场景选择窗口...")
         dismiss()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            print("✅ 设置 currentConversation")
             appState.currentConversation = conversation
         }
     }

@@ -15,7 +15,7 @@ struct PracticeView: View {
             // 顶部工具栏
             HStack {
                 Button {
-                    viewModel.showEndConfirmation = true
+                    appState.currentConversation = nil  // 直接关闭练习视图
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 16, weight: .medium))
@@ -125,7 +125,7 @@ struct PracticeView: View {
         .sheet(isPresented: $viewModel.showReport) {
             if let report = viewModel.report {
                 ReportSheet(report: report, conversation: viewModel.conversation) {
-                    appState.currentConversation = nil  // 关闭整个练习视图
+                    appState.currentConversation = nil  // 关闭练习视图
                 }
             }
         }

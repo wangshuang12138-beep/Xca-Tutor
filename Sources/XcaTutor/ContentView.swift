@@ -4,36 +4,32 @@ struct ContentView: View {
     @EnvironmentObject var appState: AppState
     
     var body: some View {
-        ZStack {
-            // 主界面
-            mainView
-            
-            // 练习界面（全屏覆盖）
-            if let conversation = appState.currentConversation {
-                PracticeView(conversation: conversation)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color(NSColor.windowBackgroundColor))
-                    .environmentObject(appState)  // 确保传递 appState
-                    .transition(.opacity)
-                    .zIndex(100)
-            }
-        }
-        .frame(minWidth: 900, minHeight: 600)
-    }
-    
-    @ViewBuilder
-    private var mainView: some View {
         NavigationView {
             Sidebar()
                 .frame(minWidth: 180, maxWidth: 200)
             
-            ContentArea()
+            // 根据状态显示不同内容
+            contentView
                 .frame(minWidth: 700)
         }
+        .frame(minWidth: 900, minHeight: 600)
         .sheet(isPresented: $appState.showSceneSelection) {
             SceneSelectionView()
-                .environmentObject(appState)  // 传递 appState
+                .environmentObject(appState)
                 .frame(minWidth: 800, minHeight: 600)
+        }
+    }
+    
+    @ViewBuilder
+    private var contentView: some View {
+        if let conversation = appState.currentConversation {
+            // 显示练习界面
+            PracticeView(conversation: conversation)
+                .environmentObject(appState)
+                .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+        } else {
+            // 显示正常内容
+            ContentArea()
         }
     }
 }
@@ -85,12 +81,15 @@ struct NavItem: View {
     let title: String
     let tab: Tab
     
-    var isSelected: Bool { appState.selectedTab == tab }
+    var isSelected: Bool { 
+        appState.selectedTab == tab && appState.currentConversation == nil 
+    }
     
     var body: some View {
         Button {
             withAnimation(.easeInOut(duration: 0.15)) {
                 appState.selectedTab = tab
+                appState.currentConversation = nil  // 返回主界面时关闭练习
             }
         } label: {
             HStack(spacing: 12) {
