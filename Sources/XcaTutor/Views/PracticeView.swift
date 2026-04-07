@@ -17,7 +17,7 @@ struct PracticeView: View {
             // 顶部工具栏
             HStack {
                 Button {
-                    appState.currentConversation = nil  // 直接关闭练习视图
+                    viewModel.showEndConfirmation = true
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 16, weight: .medium))
