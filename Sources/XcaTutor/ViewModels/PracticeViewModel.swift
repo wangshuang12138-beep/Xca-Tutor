@@ -243,7 +243,7 @@ class PracticeViewModel: ObservableObject {
         }
     }
     
-    private func generateReport() async {
+    func generateReport() async {
         guard let service = openAIService else {
             showError(message: "无法生成报告：未配置 API")
             return

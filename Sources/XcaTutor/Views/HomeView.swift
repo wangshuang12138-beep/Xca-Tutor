@@ -37,9 +37,9 @@ struct HomeView: View {
                 
                 // 统计卡片
                 HStack(spacing: 16) {
-                    StatCard(title: "练习时长", value: "3.5h", icon: "clock")
-                    StatCard(title: "词汇量", value: "45", icon: "textformat")
-                    StatCard(title: "准确率", value: "82%", icon: "checkmark.circle")
+                    HomeStatCard(title: "练习时长", value: "3.5h", icon: "clock")
+                    HomeStatCard(title: "词汇量", value: "45", icon: "textformat")
+                    HomeStatCard(title: "准确率", value: "82%", icon: "checkmark.circle")
                 }
                 
                 // 场景列表
@@ -62,7 +62,7 @@ struct HomeView: View {
     }
 }
 
-struct StatCard: View {
+struct HomeStatCard: View {
     let title: String
     let value: String
     let icon: String

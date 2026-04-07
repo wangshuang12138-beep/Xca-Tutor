@@ -114,7 +114,4 @@ struct ContentArea: View {
     }
 }
 
-// MARK: - Tab Enum
-enum Tab {
-    case home, scenes, mistakeBook, stats, settings
-}
+
