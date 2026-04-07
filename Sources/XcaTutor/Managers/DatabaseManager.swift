@@ -240,7 +240,7 @@ class DatabaseManager {
         let role = MessageRole(rawValue: roleRaw) ?? .user
         let timestamp = Date(timeIntervalSince1970: result.double(forColumn: "timestamp"))
         let audioFile = result.string(forColumn: "audio_file")
-        let durationMs = result.object(forColumnName: "duration_ms") as? Int
+        let durationMs = result.object(forColumn: "duration_ms") as? Int
         
         return Message(
             id: id,
@@ -339,7 +339,7 @@ class DatabaseManager {
             type: type,
             originalText: originalText,
             correctedText: correctedText,
-            explanation: result.string(forColumn: "explanation"),
+            explanation: result.string(forColumn: "explanation") ?? "",
             context: result.string(forColumn: "context"),
             audioSnippet: result.string(forColumn: "audio_snippet"),
             mastered: mastered,

@@ -98,7 +98,7 @@ class SettingsManager: ObservableObject {
             let baseURL = settings.useProxy ? settings.proxyBaseURL : "https://api.openai.com/v1"
             let service = OpenAIService(apiKey: settings.apiKey, baseURL: baseURL)
             _ = try await service.chat(
-                messages: [.init(role: .user, content: "Hi")],
+                messages: [.init(role: "user", content: "Hi")],
                 config: .init(model: settings.chatModel, temperature: 0.5, maxTokens: 10)
             )
             return true
