@@ -12,6 +12,8 @@ struct ContentView: View {
             contentView
                 .frame(minWidth: 700)
         }
+        // 关键：强制 NavigationView 在 currentConversation 变化时刷新
+        .id(appState.currentConversation?.id ?? "main")
         .frame(minWidth: 900, minHeight: 600)
         .sheet(isPresented: $appState.showSceneSelection) {
             SceneSelectionView()
