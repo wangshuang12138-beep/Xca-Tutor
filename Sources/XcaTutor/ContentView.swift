@@ -4,38 +4,32 @@ struct ContentView: View {
     @EnvironmentObject var appState: AppState
     
     var body: some View {
-        NavigationView {
-            Sidebar()
-                .frame(minWidth: 180, maxWidth: 200)
+        ZStack {
+            // 主界面
+            NavigationView {
+                Sidebar()
+                    .frame(minWidth: 180, maxWidth: 200)
+                
+                ContentArea()
+                    .frame(minWidth: 700)
+            }
+            .frame(minWidth: 900, minHeight: 600)
+            .sheet(isPresented: $appState.showSceneSelection) {
+                SceneSelectionView()
+                    .frame(minWidth: 800, minHeight: 600)
+            }
+            .disabled(appState.currentConversation != nil)
+            .opacity(appState.currentConversation != nil ? 0.3 : 1)
             
-            // 根据选中标签显示不同内容
-            ContentArea()
-                .frame(minWidth: 700)
-        }
-        .frame(minWidth: 900, minHeight: 600)
-        .sheet(isPresented: $appState.showSceneSelection) {
-            SceneSelectionView()
-                .frame(minWidth: 800, minHeight: 600)
-        }
-        .overlay {
-            // 使用 overlay 而不是 sheet 显示练习界面
+            // 练习界面（全屏覆盖）
             if let conversation = appState.currentConversation {
-                PracticeOverlay(conversation: conversation)
-                    .transition(.move(edge: .trailing))
+                PracticeView(conversation: conversation)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(NSColor.windowBackgroundColor))
+                    .transition(.move(edge: .bottom))
+                    .zIndex(1)
             }
         }
-    }
-}
-
-// MARK: - Practice Overlay
-struct PracticeOverlay: View {
-    let conversation: Conversation
-    @EnvironmentObject var appState: AppState
-    
-    var body: some View {
-        PracticeView(conversation: conversation)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(NSColor.windowBackgroundColor))
     }
 }
 
@@ -132,5 +126,3 @@ struct ContentArea: View {
         }
     }
 }
-
-
