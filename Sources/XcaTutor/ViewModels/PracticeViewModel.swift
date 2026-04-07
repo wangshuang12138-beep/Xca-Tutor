@@ -63,9 +63,11 @@ class PracticeViewModel: ObservableObject {
             )
             messages.append(systemMessage)
             
-            // Agent 开场白
-            Task {
-                await sendAgentGreeting()
+            // Agent 开场白 - 延迟执行确保视图已加载
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                Task { @MainActor in
+                    await self?.sendAgentGreeting()
+                }
             }
         }
     }
