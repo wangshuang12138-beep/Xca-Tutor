@@ -37,10 +37,11 @@ struct XcaTutorApp: App {
             }
         }
         
-        Settings {
-            SettingsView()
-                .frame(minWidth: 600, minHeight: 500)
-        }
+        // Settings Scene requires macOS 13+
+        // Settings {
+        //     SettingsView()
+        //         .frame(minWidth: 600, minHeight: 500)
+        // }
     }
 }
 

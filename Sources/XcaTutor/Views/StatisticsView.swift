@@ -305,7 +305,7 @@ class StatisticsViewModel: ObservableObject {
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyy-MM-dd"
             
-            var existingDates = Set(dailyStats.map { $0.date })
+            let existingDates = Set(dailyStats.map { $0.date })
             let calendar = Calendar.current
             
             for dayOffset in (0..<7).reversed() {

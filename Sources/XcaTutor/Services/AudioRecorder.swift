@@ -45,7 +45,7 @@ class AudioRecorder: NSObject, AudioRecorderProtocol {
     private func checkMicrophonePermission() {
         // macOS 使用 AVCaptureDevice 检查麦克风权限
         #if os(macOS)
-        let audioSession = AVCaptureDevice.default(for: .audio)
+        _ = AVCaptureDevice.default(for: .audio)
         // macOS 首次使用时会自动弹出权限请求
         #endif
     }
