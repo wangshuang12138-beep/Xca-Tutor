@@ -6,227 +6,128 @@ struct HomeView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
-                // 欢迎区域
-                welcomeSection
+            VStack(spacing: 32) {
+                // 欢迎
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("欢迎回来")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                    Text("今天想练习什么场景？")
+                        .font(.title3)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
-                // 继续练习（如果有）
-                if let lastConversation = viewModel.lastConversation {
-                    continueSection(conversation: lastConversation)
+                // 开始练习按钮
+                Button {
+                    appState.showSceneSelection = true
+                } label: {
+                    HStack {
+                        Image(systemName: "play.fill")
+                        Text("开始练习")
+                            .font(.headline)
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(12)
+                }
+                .buttonStyle(.plain)
+                
+                // 统计卡片
+                HStack(spacing: 16) {
+                    StatCard(title: "练习时长", value: "3.5h", icon: "clock")
+                    StatCard(title: "词汇量", value: "45", icon: "textformat")
+                    StatCard(title: "准确率", value: "82%", icon: "checkmark.circle")
                 }
                 
-                // 场景选择
-                scenesSection
-                
-                // 学习数据
-                statsSection
-                
-                // 错题本入口
-                mistakeBookSection
+                // 场景列表
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("推荐场景")
+                        .font(.headline)
+                    
+                    VStack(spacing: 8) {
+                        ForEach(viewModel.scenes.prefix(3)) { scene in
+                            SceneRow(scene: scene) {
+                                appState.showSceneSelection = true
+                            }
+                        }
+                    }
+                }
             }
             .padding(32)
         }
         .background(Color(NSColor.windowBackgroundColor))
     }
+}
+
+struct StatCard: View {
+    let title: String
+    let value: String
+    let icon: String
     
-    // MARK: - Welcome Section
-    private var welcomeSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("👋 欢迎回来")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-            
-            Text("今天想练习什么场景？")
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(.blue)
+            Text(value)
                 .font(.title3)
+                .fontWeight(.semibold)
+            Text(title)
+                .font(.caption)
                 .foregroundColor(.secondary)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-    
-    // MARK: - Continue Section
-    private func continueSection(conversation: Conversation) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("🎯 继续练习")
-                .font(.headline)
-            
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("餐厅点餐")
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                    
-                    Text("练习了 12 分钟 · B1 难度")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                Button("继续练习") {
-                    appState.currentConversation = conversation
-                }
-                .buttonStyle(.primary)
-            }
-            .padding(20)
-            .background(Color.blue.opacity(0.1))
-            .cornerRadius(12)
-        }
-    }
-    
-    // MARK: - Scenes Section
-    private var scenesSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("📚 选择场景")
-                .font(.headline)
-            
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))], spacing: 16) {
-                ForEach(viewModel.scenes) { scene in
-                    SceneCard(scene: scene) {
-                        appState.showSceneSelection = true
-                    }
-                }
-            }
-        }
-    }
-    
-    // MARK: - Stats Section
-    private var statsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("📊 本周学习")
-                .font(.headline)
-            
-            HStack(spacing: 24) {
-                StatItem(title: "练习时长", value: "3.5 小时", trend: "+12%")
-                StatItem(title: "新掌握词汇", value: "45 个", trend: "+8")
-                StatItem(title: "平均准确率", value: "82%", trend: "+5%")
-            }
-            .padding(20)
-            .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(12)
-        }
-    }
-    
-    // MARK: - Mistake Book Section
-    private var mistakeBookSection: some View {
-        Button {
-            appState.selectedTab = .mistakeBook
-        } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("📝 错题本")
-                        .font(.headline)
-                    Text("共 12 条错误待复习")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.secondary)
-            }
-            .padding(20)
-            .background(Color.orange.opacity(0.1))
-            .cornerRadius(12)
-        }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor))
+        .cornerRadius(12)
     }
 }
 
-// MARK: - Supporting Views
-
-struct SceneCard: View {
+struct SceneRow: View {
     let scene: Scene
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 12) {
-                Text(scene.icon)
-                    .font(.system(size: 40))
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(scene.name)
+                        .font(.headline)
+                    Text(scene.description)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
                 
-                Text(scene.name)
-                    .font(.headline)
-                    .lineLimit(1)
+                Spacer()
                 
                 Text(scene.difficulty)
                     .font(.caption)
-                    .foregroundColor(.secondary)
                     .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(Color.gray.opacity(0.2))
+                    .padding(.vertical, 4)
+                    .background(Color.blue.opacity(0.1))
+                    .foregroundColor(.blue)
                     .cornerRadius(4)
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 120)
-            .padding(12)
+            .padding()
             .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(12)
+            .cornerRadius(10)
         }
         .buttonStyle(.plain)
     }
 }
 
-struct StatItem: View {
-    let title: String
-    let value: String
-    let trend: String
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Text(value)
-                .font(.title2)
-                .fontWeight(.semibold)
-            
-            Text(trend)
-                .font(.caption)
-                .foregroundColor(.green)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-// MARK: - View Model
-
 class HomeViewModel: ObservableObject {
     @Published var scenes: [Scene] = []
-    @Published var lastConversation: Conversation?
     
     init() {
-        loadScenes()
-        loadLastConversation()
-    }
-    
-    private func loadScenes() {
-        // 加载内置场景
         scenes = SceneRepository.shared.builtinScenes
-    }
-    
-    private func loadLastConversation() {
-        // 从数据库加载最近未完成的对话
-        // 暂时用模拟数据
-    }
-}
-
-// MARK: - Button Style
-
-extension ButtonStyle where Self == PrimaryButtonStyle {
-    static var primary: PrimaryButtonStyle { PrimaryButtonStyle() }
-}
-
-struct PrimaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.body.weight(.semibold))
-            .foregroundColor(.white)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-            .background(Color.blue)
-            .cornerRadius(8)
-            .scaleEffect(configuration.isPressed ? 0.96 : 1)
     }
 }

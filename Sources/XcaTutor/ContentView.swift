@@ -5,83 +5,116 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            SidebarView(selectedTab: $appState.selectedTab)
-                .frame(minWidth: 200)
+            Sidebar()
+                .frame(minWidth: 180, maxWidth: 200)
             
-            // Default view
-            HomeView()
+            // 根据选中标签显示不同内容
+            ContentArea()
+                .frame(minWidth: 700)
         }
+        .frame(minWidth: 900, minHeight: 600)
         .sheet(isPresented: $appState.showSceneSelection) {
             SceneSelectionView()
                 .frame(minWidth: 800, minHeight: 600)
-        }
-        .sheet(item: $appState.currentConversation) { conversation in
-            PracticeView(conversation: conversation)
-                .frame(minWidth: 900, minHeight: 700)
         }
     }
 }
 
 // MARK: - Sidebar
-struct SidebarView: View {
-    @Binding var selectedTab: Tab
+struct Sidebar: View {
+    @EnvironmentObject var appState: AppState
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Xca Tutor")
-                .font(.title2)
-                .fontWeight(.bold)
-                .padding()
+        VStack(spacing: 0) {
+            // Logo
+            HStack {
+                Image(systemName: "bubble.left.and.bubble.right.fill")
+                    .font(.title2)
+                    .foregroundColor(.blue)
+                Text("Xca")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                Spacer()
+            }
+            .padding()
             
             Divider()
             
-            SidebarButton(icon: "house.fill", title: "首页", tab: .home, selectedTab: $selectedTab)
-            SidebarButton(icon: "book.fill", title: "场景", tab: .scenes, selectedTab: $selectedTab)
-            SidebarButton(icon: "bookmark.fill", title: "错题本", tab: .mistakeBook, selectedTab: $selectedTab)
-            SidebarButton(icon: "chart.bar.fill", title: "学习统计", tab: .stats, selectedTab: $selectedTab)
+            // Menu Items
+            VStack(spacing: 4) {
+                NavItem(icon: "house", title: "首页", tab: .home)
+                NavItem(icon: "book", title: "场景练习", tab: .scenes)
+                NavItem(icon: "bookmark", title: "错题本", tab: .mistakeBook)
+                NavItem(icon: "chart.bar", title: "统计", tab: .stats)
+            }
+            .padding(.vertical, 8)
             
             Spacer()
             
             Divider()
             
-            Button {
-                // Show settings
-            } label: {
-                Label("设置", systemImage: "gear")
-                    .padding()
+            // Settings
+            NavItem(icon: "gear", title: "设置", tab: .settings)
+                .padding(.vertical, 8)
+        }
+        .background(Color(NSColor.controlBackgroundColor))
+    }
+}
+
+struct NavItem: View {
+    @EnvironmentObject var appState: AppState
+    let icon: String
+    let title: String
+    let tab: Tab
+    
+    var isSelected: Bool { appState.selectedTab == tab }
+    
+    var body: some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                appState.selectedTab = tab
             }
-            .buttonStyle(.plain)
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .frame(width: 20)
+                Text(title)
+                    .font(.system(size: 14))
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(isSelected ? Color.blue.opacity(0.12) : Color.clear)
+            .foregroundColor(isSelected ? .blue : .primary.opacity(0.8))
+            .cornerRadius(8)
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 12)
+    }
+}
+
+// MARK: - Content Area
+struct ContentArea: View {
+    @EnvironmentObject var appState: AppState
+    
+    var body: some View {
+        switch appState.selectedTab {
+        case .home:
+            HomeView()
+        case .scenes:
+            SceneSelectionView()
+        case .mistakeBook:
+            MistakeBookView()
+        case .stats:
+            StatisticsView()
+        case .settings:
+            SettingsView()
         }
     }
 }
 
-struct SidebarButton: View {
-    let icon: String
-    let title: String
-    let tab: Tab
-    @Binding var selectedTab: Tab
-    
-    var isSelected: Bool {
-        selectedTab == tab
-    }
-    
-    var body: some View {
-        Button {
-            selectedTab = tab
-        } label: {
-            HStack {
-                Image(systemName: icon)
-                    .frame(width: 24)
-                Text(title)
-                Spacer()
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(isSelected ? Color.blue.opacity(0.1) : Color.clear)
-            .foregroundColor(isSelected ? .blue : .primary)
-            .cornerRadius(6)
-        }
-        .buttonStyle(.plain)
-        .padding(.horizontal, 8)
-    }
+// MARK: - Tab Enum
+enum Tab {
+    case home, scenes, mistakeBook, stats, settings
 }

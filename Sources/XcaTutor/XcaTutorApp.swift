@@ -107,5 +107,5 @@ class AppState: ObservableObject {
 }
 
 enum Tab {
-    case home, scenes, mistakeBook, stats
+    case home, scenes, mistakeBook, stats, settings
 }
