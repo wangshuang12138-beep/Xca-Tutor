@@ -67,14 +67,16 @@ class AudioRecorder: NSObject, AudioRecorderProtocol {
         
         // 创建临时文件
         let tempDir = FileManager.default.temporaryDirectory
-        recordingURL = tempDir.appendingPathComponent("recording_\(UUID().uuidString).m4a")
+        recordingURL = tempDir.appendingPathComponent("recording_\(UUID().uuidString).wav")
         
-        // 设置录音格式 (AAC, 24kHz, 单声道)
+        // 设置录音格式 (PCM/WAV, 16kHz, 单声道) - Whisper 推荐格式
         let settings: [String: Any] = [
-            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-            AVSampleRateKey: 24000,
+            AVFormatIDKey: Int(kAudioFormatLinearPCM),
+            AVSampleRateKey: 16000,
             AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+            AVLinearPCMBitDepthKey: 16,
+            AVLinearPCMIsFloatKey: false,
+            AVLinearPCMIsBigEndianKey: false
         ]
         
         do {
