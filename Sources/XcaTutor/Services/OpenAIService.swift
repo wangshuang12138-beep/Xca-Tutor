@@ -72,8 +72,13 @@ class OpenAIService {
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw OpenAIError.invalidResponse
+        }
+        
+        if httpResponse.statusCode != 200 {
+            let errorText = String(data: data, encoding: .utf8) ?? "Unknown error"
+            print("❌ Transcription Error (\(httpResponse.statusCode)): \(errorText)")
             throw OpenAIError.transcriptionFailed
         }
         
@@ -112,7 +117,8 @@ class OpenAIService {
         
         if httpResponse.statusCode != 200 {
             let errorText = String(data: data, encoding: .utf8) ?? "Unknown error"
-            throw OpenAIError.apiError(errorText)
+            print("❌ API Error (\(httpResponse.statusCode)): \(errorText)")
+            throw OpenAIError.apiError("HTTP \(httpResponse.statusCode): \(errorText)")
         }
         
         let result = try JSONDecoder().decode(ChatResponse.self, from: data)

@@ -35,10 +35,22 @@ class PracticeViewModel: ObservableObject {
         
         setupAudioHandlers()
         
+        // 重新加载设置以确保最新
+        SettingsManager.shared.loadSettings()
+        let currentSettings = SettingsManager.shared.settings
+        
+        print("📋 当前设置:")
+        print("  API Key: \(currentSettings.apiKey.prefix(10))...")
+        print("  Use Proxy: \(currentSettings.useProxy)")
+        print("  Proxy URL: \(currentSettings.proxyBaseURL)")
+        
         // 如果有 API Key，初始化服务
-        if !settings.apiKey.isEmpty {
-            let baseURL = settings.useProxy ? settings.proxyBaseURL : "https://api.openai.com/v1"
-            openAIService = OpenAIService(apiKey: settings.apiKey, baseURL: baseURL)
+        if !currentSettings.apiKey.isEmpty {
+            let baseURL = currentSettings.useProxy ? currentSettings.proxyBaseURL : "https://api.openai.com/v1"
+            print("🌐 使用 Base URL: \(baseURL)")
+            openAIService = OpenAIService(apiKey: currentSettings.apiKey, baseURL: baseURL)
+        } else {
+            print("⚠️ API Key 为空")
         }
         
         // 添加系统消息

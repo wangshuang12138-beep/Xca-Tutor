@@ -18,6 +18,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var appState = AppState()
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // 初始化 API2D 配置（如果没有设置）
+        ensureAPI2DConfigured()
+        
         // 创建窗口
         let contentView = ContentView()
             .environmentObject(appState)
@@ -95,6 +98,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func showStats() {
         appState.selectedTab = .stats
+    }
+    
+    private func ensureAPI2DConfigured() {
+        let settings = SettingsManager.shared.settings
+        
+        // 如果 API Key 为空，自动配置 API2D
+        if settings.apiKey.isEmpty {
+            print("🔧 首次启动，自动配置 API2D...")
+            SettingsManager.shared.settings.apiKey = "fk239252-gcj2PsZit6oB8Rb1AFotIyaGLspGEpba"
+            SettingsManager.shared.settings.useProxy = true
+            SettingsManager.shared.settings.proxyBaseURL = "https://oa.api2d.net"
+            SettingsManager.shared.saveSettings()
+            print("✅ API2D 配置完成")
+        }
     }
 }
 
