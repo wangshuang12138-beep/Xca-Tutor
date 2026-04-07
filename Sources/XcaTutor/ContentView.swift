@@ -4,20 +4,12 @@ struct ContentView: View {
     @EnvironmentObject var appState: AppState
     
     var body: some View {
-        NavigationSplitView {
+        NavigationView {
             SidebarView(selectedTab: $appState.selectedTab)
                 .frame(minWidth: 200)
-        } detail: {
-            switch appState.selectedTab {
-            case .home:
-                HomeView()
-            case .scenes:
-                SceneSelectionView()
-            case .mistakeBook:
-                MistakeBookView()
-            case .stats:
-                StatisticsView()
-            }
+            
+            // Default view
+            HomeView()
         }
         .sheet(isPresented: $appState.showSceneSelection) {
             SceneSelectionView()
@@ -35,33 +27,61 @@ struct SidebarView: View {
     @Binding var selectedTab: Tab
     
     var body: some View {
-        List(selection: $selectedTab) {
-            NavigationLink(value: Tab.home) {
-                Label("首页", systemImage: "house.fill")
-            }
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Xca Tutor")
+                .font(.title2)
+                .fontWeight(.bold)
+                .padding()
             
-            NavigationLink(value: Tab.scenes) {
-                Label("场景", systemImage: "book.fill")
-            }
+            Divider()
             
-            NavigationLink(value: Tab.mistakeBook) {
-                Label("错题本", systemImage: "bookmark.fill")
-            }
+            SidebarButton(icon: "house.fill", title: "首页", tab: .home, selectedTab: $selectedTab)
+            SidebarButton(icon: "book.fill", title: "场景", tab: .scenes, selectedTab: $selectedTab)
+            SidebarButton(icon: "bookmark.fill", title: "错题本", tab: .mistakeBook, selectedTab: $selectedTab)
+            SidebarButton(icon: "chart.bar.fill", title: "学习统计", tab: .stats, selectedTab: $selectedTab)
             
-            NavigationLink(value: Tab.stats) {
-                Label("学习统计", systemImage: "chart.bar.fill")
-            }
+            Spacer()
             
             Divider()
             
             Button {
-                NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+                // Show settings
             } label: {
                 Label("设置", systemImage: "gear")
+                    .padding()
             }
             .buttonStyle(.plain)
         }
-        .listStyle(.sidebar)
-        .navigationTitle("Xca Tutor")
+    }
+}
+
+struct SidebarButton: View {
+    let icon: String
+    let title: String
+    let tab: Tab
+    @Binding var selectedTab: Tab
+    
+    var isSelected: Bool {
+        selectedTab == tab
+    }
+    
+    var body: some View {
+        Button {
+            selectedTab = tab
+        } label: {
+            HStack {
+                Image(systemName: icon)
+                    .frame(width: 24)
+                Text(title)
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(isSelected ? Color.blue.opacity(0.1) : Color.clear)
+            .foregroundColor(isSelected ? .blue : .primary)
+            .cornerRadius(6)
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 8)
     }
 }

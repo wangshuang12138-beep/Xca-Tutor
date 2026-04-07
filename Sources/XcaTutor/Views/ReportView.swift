@@ -115,9 +115,20 @@ struct ReportView: View {
             Text("词汇亮点")
                 .font(.headline)
             
-            FlowLayout(spacing: 8) {
-                ForEach(report.vocabularyHighlights, id: \.word) { highlight in
-                    VocabularyTag(word: highlight.word)
+            // 使用固定网格布局
+            let columns = 4
+            let words = report.vocabularyHighlights.map { $0.word }
+            let rows = stride(from: 0, to: words.count, by: columns).map {
+                Array(words[$0..<min($0 + columns, words.count)])
+            }
+            
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(rows.indices, id: \.self) { rowIndex in
+                    HStack(spacing: 8) {
+                        ForEach(rows[rowIndex], id: \.self) { word in
+                            VocabularyTag(word: word)
+                        }
+                    }
                 }
             }
         }
@@ -258,54 +269,5 @@ struct VocabularyTag: View {
             .background(Color.green.opacity(0.15))
             .foregroundColor(.green)
             .cornerRadius(16)
-    }
-}
-
-// MARK: - Flow Layout
-
-struct FlowLayout: Layout {
-    var spacing: CGFloat = 8
-    
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let result = FlowResult(in: proposal.width ?? 0, subviews: subviews, spacing: spacing)
-        return result.size
-    }
-    
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let result = FlowResult(in: bounds.width, subviews: subviews, spacing: spacing)
-        for (index, subview) in subviews.enumerated() {
-            subview.place(at: CGPoint(x: bounds.minX + result.positions[index].x,
-                                      y: bounds.minY + result.positions[index].y),
-                         proposal: .unspecified)
-        }
-    }
-    
-    struct FlowResult {
-        var size: CGSize = .zero
-        var positions: [CGPoint] = []
-        
-        init(in maxWidth: CGFloat, subviews: Subviews, spacing: CGFloat) {
-            var x: CGFloat = 0
-            var y: CGFloat = 0
-            var rowHeight: CGFloat = 0
-            
-            for subview in subviews {
-                let size = subview.sizeThatFits(.unspecified)
-                
-                if x + size.width > maxWidth && x > 0 {
-                    x = 0
-                    y += rowHeight + spacing
-                    rowHeight = 0
-                }
-                
-                positions.append(CGPoint(x: x, y: y))
-                rowHeight = max(rowHeight, size.height)
-                x += size.width + spacing
-                
-                self.size.width = max(self.size.width, x)
-            }
-            
-            self.size.height = y + rowHeight
-        }
     }
 }
