@@ -3,7 +3,7 @@ import SwiftUI
 struct PracticeView: View {
     let conversation: Conversation
     @StateObject private var viewModel: PracticeViewModel
-    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var appState: AppState
     
     init(conversation: Conversation) {
         self.conversation = conversation
@@ -125,7 +125,7 @@ struct PracticeView: View {
         .sheet(isPresented: $viewModel.showReport) {
             if let report = viewModel.report {
                 ReportSheet(report: report, conversation: viewModel.conversation) {
-                    dismiss()  // 关闭整个练习视图
+                    appState.currentConversation = nil  // 关闭整个练习视图
                 }
             }
         }
@@ -162,9 +162,9 @@ struct ReportSheet: View {
                 Spacer()
                 
                 Button {
-                    dismiss()  // 先关闭 sheet
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        onClose()  // 再关闭 PracticeView
+                    dismiss()  // 关闭 sheet
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        onClose()  // 关闭 PracticeView
                     }
                 } label: {
                     Image(systemName: "xmark")
@@ -217,9 +217,9 @@ struct ReportSheet: View {
                     
                     // 返回按钮
                     Button {
-                        dismiss()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            onClose()
+                        dismiss()  // 关闭 report sheet
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                            onClose()  // 关闭 PracticeView
                         }
                     } label: {
                         Text("返回首页")

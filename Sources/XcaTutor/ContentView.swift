@@ -17,10 +17,25 @@ struct ContentView: View {
             SceneSelectionView()
                 .frame(minWidth: 800, minHeight: 600)
         }
-        .sheet(item: $appState.currentConversation) { conversation in
-            PracticeView(conversation: conversation)
-                .frame(minWidth: 900, minHeight: 700)
+        .overlay {
+            // 使用 overlay 而不是 sheet 显示练习界面
+            if let conversation = appState.currentConversation {
+                PracticeOverlay(conversation: conversation)
+                    .transition(.move(edge: .trailing))
+            }
         }
+    }
+}
+
+// MARK: - Practice Overlay
+struct PracticeOverlay: View {
+    let conversation: Conversation
+    @EnvironmentObject var appState: AppState
+    
+    var body: some View {
+        PracticeView(conversation: conversation)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color(NSColor.windowBackgroundColor))
     }
 }
 
