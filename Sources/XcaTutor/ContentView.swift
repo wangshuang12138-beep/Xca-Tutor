@@ -16,6 +16,7 @@ struct ContentView: View {
             }
         }
         .frame(minWidth: 900, minHeight: 600)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -92,11 +93,13 @@ struct PracticeContainerView: View {
             if let conversation = appState.currentConversation {
                 PracticeView(conversation: conversation)
                     .environmentObject(appState)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 // 不应该发生，但为了防止崩溃
                 Text("加载中...")
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
