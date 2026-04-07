@@ -89,7 +89,8 @@ class SettingsManager: ObservableObject {
     // MARK: - Validation
     
     var isValid: Bool {
-        !settings.apiKey.isEmpty && settings.apiKey.hasPrefix("sk-")
+        // 支持 OpenAI (sk-) 和 API2D (fk-) 格式的 key
+        !settings.apiKey.isEmpty && (settings.apiKey.hasPrefix("sk-") || settings.apiKey.hasPrefix("fk-"))
     }
     
     func validateAPIKey() async -> Bool {
