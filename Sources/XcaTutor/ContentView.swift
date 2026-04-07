@@ -17,6 +17,10 @@ struct ContentView: View {
             SceneSelectionView()
                 .frame(minWidth: 800, minHeight: 600)
         }
+        .sheet(item: $appState.currentConversation) { conversation in
+            PracticeView(conversation: conversation)
+                .frame(minWidth: 900, minHeight: 700)
+        }
     }
 }
 
