@@ -164,7 +164,7 @@ struct PracticeView: View {
             }
             .buttonStyle(.plain)
             .disabled(viewModel.isProcessing)
-            .keyboardShortcut(.space, modifiers: [])
+            // .keyboardShortcut(.space, modifiers: [])  // macOS 13+ only, removed for compatibility
             
             Text("按空格键说话")
                 .font(.caption)

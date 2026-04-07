@@ -1,5 +1,4 @@
 import SwiftUI
-import Charts
 
 struct StatisticsView: View {
     @StateObject private var viewModel = StatisticsViewModel()
@@ -11,13 +10,13 @@ struct StatisticsView: View {
                     // 总览卡片
                     overviewSection
                     
-                    // 学习趋势图
+                    // 学习趋势图（纯SwiftUI实现）
                     trendChartSection
                     
                     // 本周统计
                     weeklyStatsSection
                     
-                    // 能力雷达图（简化版）
+                    // 能力评估
                     skillsSection
                 }
                 .padding(24)
@@ -58,34 +57,34 @@ struct StatisticsView: View {
             Text("学习趋势（最近7天）")
                 .font(.headline)
             
-            if #available(macOS 13.0, *) {
-                Chart(viewModel.dailyStats) { stat in
-                    BarMark(
-                        x: .value("日期", stat.date),
-                        y: .value("时长", Double(stat.totalDurationMs) / 3600000)
-                    )
-                    .foregroundStyle(Color.blue.gradient)
-                    .cornerRadius(4)
-                }
-                .frame(height: 200)
-                .chartYAxis {
-                    AxisMarks(position: .leading)
-                }
-            } else {
-                // Fallback for older macOS
-                HStack {
-                    ForEach(viewModel.dailyStats) { stat in
-                        VStack {
+            // 纯 SwiftUI 柱状图
+            HStack(alignment: .bottom, spacing: 8) {
+                ForEach(viewModel.dailyStats) { stat in
+                    VStack(spacing: 4) {
+                        // 计算柱子高度（最大2小时）
+                        let hours = Double(stat.totalDurationMs) / 3600000
+                        let maxHeight: CGFloat = 150
+                        let height = min(CGFloat(hours / 2.0) * maxHeight, maxHeight)
+                        
+                        ZStack(alignment: .bottom) {
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.1))
+                                .frame(width: 30, height: maxHeight)
+                            
                             Rectangle()
                                 .fill(Color.blue)
-                                .frame(height: CGFloat(stat.totalDurationMs) / 3600000 * 50)
-                            Text(stat.shortDate)
-                                .font(.caption)
+                                .frame(width: 30, height: max(height, 4))
                         }
+                        .cornerRadius(4)
+                        
+                        Text(stat.shortDate)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(height: 200)
             }
+            .frame(height: 180)
         }
         .padding(20)
         .background(Color(NSColor.controlBackgroundColor))
