@@ -76,7 +76,7 @@ struct MainView: View {
             .frame(minWidth: 700)
         }
         .sheet(isPresented: $appState.showSceneSelection) {
-            SceneSelectionView()
+            SceneSelectionSheet()
                 .environmentObject(appState)
                 .frame(minWidth: 800, minHeight: 600)
         }

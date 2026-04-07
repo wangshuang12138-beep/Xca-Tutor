@@ -1,6 +1,38 @@
 import SwiftUI
 
 struct SceneSelectionView: View {
+    @StateObject private var viewModel = SceneSelectionViewModel()
+    @EnvironmentObject var appState: AppState
+    
+    var body: some View {
+        ScrollView {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 280))], spacing: 20) {
+                ForEach(viewModel.scenes) { scene in
+                    SceneDetailCard(scene: scene) {
+                        startPractice(scene: scene)
+                    }
+                }
+            }
+            .padding(24)
+        }
+        .navigationTitle("选择场景")
+    }
+    
+    private func startPractice(scene: Scene) {
+        let conversation = Conversation(
+            sceneId: scene.id,
+            difficulty: SettingsManager.shared.settings.defaultDifficulty
+        )
+        
+        // 保存到数据库
+        _ = DatabaseManager.shared.saveConversation(conversation)
+        
+        // 直接设置 currentConversation，不需要 dismiss
+        appState.currentConversation = conversation
+    }
+}
+
+struct SceneSelectionSheet: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = SceneSelectionViewModel()
     @EnvironmentObject var appState: AppState
@@ -38,7 +70,7 @@ struct SceneSelectionView: View {
         // 保存到数据库
         _ = DatabaseManager.shared.saveConversation(conversation)
         
-        // 先关闭 sheet，延迟设置 conversation
+        // 关闭 sheet 后再设置 conversation
         dismiss()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             appState.currentConversation = conversation
