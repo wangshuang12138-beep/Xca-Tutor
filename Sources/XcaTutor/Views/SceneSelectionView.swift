@@ -90,7 +90,7 @@ struct SceneDetailCard: View {
             Button("开始练习") {
                 onStart()
             }
-            .buttonStyle(.primary)
+            .buttonStyle(BorderedProminentButtonStyle())
             .frame(maxWidth: .infinity)
         }
         .padding(20)
