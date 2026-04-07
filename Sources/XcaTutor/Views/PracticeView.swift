@@ -6,14 +6,12 @@ struct PracticeView: View {
     @EnvironmentObject var appState: AppState
     
     init(conversation: Conversation) {
-        print("🔨 PracticeView init 被调用")
         self.conversation = conversation
         _viewModel = StateObject(wrappedValue: PracticeViewModel(conversation: conversation))
     }
-    
+
     var body: some View {
-        print("📱 PracticeView.body 渲染, messages: \(viewModel.messages.count)")
-        return VStack(spacing: 0) {
+        VStack(spacing: 0) {
             // 顶部工具栏
             HStack {
                 Button {
@@ -115,7 +113,7 @@ struct PracticeView: View {
             .padding(.vertical, 16)
             .background(Color(NSColor.windowBackgroundColor))
         }
-        .frame(minWidth: 600, minHeight: 500)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .alert("结束练习？", isPresented: $viewModel.showEndConfirmation) {
             Button("取消", role: .cancel) { }
             Button("结束", role: .destructive) {
