@@ -97,7 +97,6 @@ struct SettingsView: View {
                 }
             }
         }
-        .formStyle(.grouped)
     }
     
     // MARK: - Model Settings
@@ -155,7 +154,6 @@ struct SettingsView: View {
                 }
             }
         }
-        .formStyle(.grouped)
     }
     
     // MARK: - Practice Settings
@@ -193,7 +191,6 @@ struct SettingsView: View {
                 .foregroundColor(.red)
             }
         }
-        .formStyle(.grouped)
     }
     
     private func levelDescription(_ level: String) -> String {

@@ -198,8 +198,7 @@ struct ScoreBar: View {
             
             Text("\(score)%")
                 .frame(width: 50, alignment: .trailing)
-                .font(.caption)
-                .fontWeight(.semibold)
+                .font(.caption.bold())
         }
     }
 }

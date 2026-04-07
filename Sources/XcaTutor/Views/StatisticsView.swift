@@ -226,8 +226,7 @@ struct SkillBar: View {
             
             Text("\(score)")
                 .frame(width: 30, alignment: .trailing)
-                .font(.caption)
-                .fontWeight(.semibold)
+                .font(.caption.bold())
         }
     }
 }
