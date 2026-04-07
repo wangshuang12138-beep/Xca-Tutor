@@ -29,9 +29,11 @@ class PracticeViewModel: ObservableObject {
     // MARK: - Initialization
     
     init(conversation: Conversation) {
+        print("🔨 PracticeViewModel init 开始")
         self.conversation = conversation
         self.difficulty = conversation.difficulty
         self.scene = SceneRepository.shared.builtinScenes.first { $0.id == conversation.sceneId }
+        print("🔨 Scene: \(self.scene?.name ?? "nil")")
         
         setupAudioHandlers()
         
@@ -62,6 +64,7 @@ class PracticeViewModel: ObservableObject {
                 timestamp: Date()
             )
             messages.append(systemMessage)
+            print("🔨 系统消息已添加, messages count: \(messages.count)")
             
             // Agent 开场白 - 延迟执行确保视图已加载
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
@@ -70,6 +73,7 @@ class PracticeViewModel: ObservableObject {
                 }
             }
         }
+        print("🔨 PracticeViewModel init 完成")
     }
     
     // MARK: - Setup

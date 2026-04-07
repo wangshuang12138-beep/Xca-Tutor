@@ -46,8 +46,11 @@ struct SceneSelectionView: View {
         dismiss()
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            print("✅ 设置 currentConversation")
-            appState.currentConversation = conversation
+            print("✅ 设置 currentConversation = \(conversation.id)")
+            withAnimation {
+                appState.currentConversation = conversation
+            }
+            print("✅ currentConversation 设置完成")
         }
     }
 }
