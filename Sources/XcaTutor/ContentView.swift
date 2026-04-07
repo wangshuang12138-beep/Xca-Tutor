@@ -22,13 +22,19 @@ struct ContentView: View {
     
     @ViewBuilder
     private var contentView: some View {
+        let hasConversation = appState.currentConversation != nil
+        print("🔄 contentView 重新计算, currentConversation: \(hasConversation ? "有" : "无")")
+        
         if let conversation = appState.currentConversation {
             // 显示练习界面
+            print("📱 显示 PracticeView")
             PracticeView(conversation: conversation)
                 .environmentObject(appState)
+                .id("practice-\(conversation.id)")  // 强制刷新
                 .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
         } else {
             // 显示正常内容
+            print("📱 显示 ContentArea")
             ContentArea()
         }
     }

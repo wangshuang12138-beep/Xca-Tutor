@@ -6,12 +6,14 @@ struct PracticeView: View {
     @EnvironmentObject var appState: AppState
     
     init(conversation: Conversation) {
+        print("🔨 PracticeView init 被调用")
         self.conversation = conversation
         _viewModel = StateObject(wrappedValue: PracticeViewModel(conversation: conversation))
     }
     
     var body: some View {
-        VStack(spacing: 0) {
+        print("📱 PracticeView.body 渲染, messages: \(viewModel.messages.count)")
+        return VStack(spacing: 0) {
             // 顶部工具栏
             HStack {
                 Button {
