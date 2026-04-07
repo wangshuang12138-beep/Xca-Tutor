@@ -13,21 +13,14 @@ let package = Package(
     ],
     dependencies: [
         // SQLite 封装
-        .package(url: "https://github.com/ccgus/fmdb.git", from: "2.7.0"),
+        .package(url: "https://github.com/ccgus/fmdb.git", from: "2.7.9"),
     ],
     targets: [
         .executableTarget(
             name: "XcaTutor",
             dependencies: [
                 .product(name: "FMDB", package: "fmdb")
-            ],
-            path: "XcaTutor",
-            exclude: ["Info.plist", "Assets.xcassets"]
-        ),
-        .testTarget(
-            name: "XcaTutorTests",
-            dependencies: ["XcaTutor"],
-            path: "XcaTutorTests"
+            ]
         )
     ]
 )

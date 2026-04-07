@@ -5,7 +5,7 @@ on:
     branches: [ master, main ]
   pull_request:
     branches: [ master, main ]
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build:
@@ -15,10 +15,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Setup Swift
-      uses: swift-actions/setup-swift@v1
-      with:
-        swift-version: '5.9'
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
     
     - name: Cache Swift packages
       uses: actions/cache@v3
@@ -28,16 +26,23 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-spm-
     
-    - name: Build
+    - name: Build Debug
+      run: swift build
+    
+    - name: Build Release
       run: swift build -c release
     
     - name: Create App Bundle
       run: |
         mkdir -p XcaTutor.app/Contents/MacOS
         mkdir -p XcaTutor.app/Contents/Resources
+        mkdir -p XcaTutor.app/Contents/Frameworks
         
         # 复制可执行文件
         cp .build/release/XcaTutor XcaTutor.app/Contents/MacOS/
+        
+        # 查找并复制依赖库
+        find .build/release -name "*.dylib" -exec cp {} XcaTutor.app/Contents/Frameworks/ \;
         
         # 创建 Info.plist
         cat > XcaTutor.app/Contents/Info.plist << 'EOF'
@@ -92,10 +97,11 @@ jobs:
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: v0.1.0-${{ github.run_number }}
+        tag_name: v0.1.0-build-${{ github.run_number }}
         name: Xca Tutor v0.1.0 Build ${{ github.run_number }}
         files: XcaTutor-v0.1.0-macOS.zip
         draft: false
         prerelease: true
+        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
