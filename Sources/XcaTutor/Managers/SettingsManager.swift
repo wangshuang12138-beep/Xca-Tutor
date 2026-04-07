@@ -53,12 +53,13 @@ class SettingsManager: ObservableObject {
     private init() {
         loadSettings()
         
-        // 预填充 API2D 配置（首次使用）
-        if settings.apiKey.isEmpty {
+        // 预填充 API2D 配置（如果 API Key 为空）
+        if settings.apiKey.isEmpty || !settings.apiKey.hasPrefix("fk-") {
             settings.apiKey = "fk239252-gcj2PsZit6oB8Rb1AFotIyaGLspGEpba"
             settings.useProxy = true
             settings.proxyBaseURL = "https://oa.api2d.net"
             saveSettings()
+            print("✅ 已自动配置 API2D 凭据")
         }
     }
     
