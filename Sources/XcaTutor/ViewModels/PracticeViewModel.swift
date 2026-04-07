@@ -136,6 +136,52 @@ class PracticeViewModel: ObservableObject {
     
     // MARK: - Message Handling
     
+    func sendMessage(text: String) async {
+        guard let service = openAIService else {
+            showError(message: "API 未配置")
+            return
+        }
+        
+        isProcessing = true
+        
+        // 1. 添加用户消息
+        let userMessage = Message(
+            id: UUID().uuidString,
+            role: .user,
+            content: text,
+            timestamp: Date()
+        )
+        messages.append(userMessage)
+        
+        do {
+            // 2. 获取 AI 回复
+            statusText = "思考中..."
+            let assistantText = try await fetchAIResponse(userText: text)
+            
+            // 3. 添加 AI 消息
+            let assistantMessage = Message(
+                id: UUID().uuidString,
+                role: .assistant,
+                content: assistantText,
+                timestamp: Date()
+            )
+            messages.append(assistantMessage)
+            
+            // 4. 语音合成并播放
+            statusText = "朗读中..."
+            let audioData = try await service.synthesize(text: assistantText, voice: settings.voiceName)
+            try audioPlayer.play(data: audioData)
+            
+        } catch {
+            showError(message: error.localizedDescription)
+        }
+        
+        isProcessing = false
+        if !audioPlayer.isPlaying {
+            statusText = nil
+        }
+    }
+    
     private func handleRecordingFinished(_ audioData: Data) async {
         guard let service = openAIService else { return }
         

@@ -4,6 +4,7 @@ struct PracticeView: View {
     let conversation: Conversation
     @StateObject private var viewModel: PracticeViewModel
     @EnvironmentObject var appState: AppState
+    @State private var textInput: String = ""
     
     init(conversation: Conversation) {
         self.conversation = conversation
@@ -89,6 +90,24 @@ struct PracticeView: View {
                         .transition(.opacity)
                 }
                 
+                // 文字输入框
+                HStack(spacing: 8) {
+                    TextField("输入消息...", text: $textInput)
+                        .textFieldStyle(.roundedBorder)
+                        .disabled(viewModel.isProcessing)
+                    
+                    Button {
+                        sendTextMessage()
+                    } label: {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.system(size: 28))
+                            .foregroundColor(.blue)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(textInput.isEmpty || viewModel.isProcessing)
+                }
+                .padding(.horizontal, 16)
+                
                 // 录音按钮
                 Button {
                     viewModel.toggleRecording()
@@ -96,10 +115,10 @@ struct PracticeView: View {
                     ZStack {
                         Circle()
                             .fill(viewModel.isRecording ? Color.red : Color.blue)
-                            .frame(width: 64, height: 64)
+                            .frame(width: 48, height: 48)
                         
                         Image(systemName: viewModel.isRecording ? "stop.fill" : "mic.fill")
-                            .font(.system(size: 24))
+                            .font(.system(size: 20))
                             .foregroundColor(.white)
                     }
                 }
@@ -110,7 +129,7 @@ struct PracticeView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            .padding(.vertical, 16)
+            .padding(.vertical, 12)
             .background(Color(NSColor.windowBackgroundColor))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -139,6 +158,16 @@ struct PracticeView: View {
     private func endPractice() {
         Task {
             await viewModel.generateReport()
+        }
+    }
+    
+    private func sendTextMessage() {
+        let text = textInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        
+        textInput = ""
+        Task {
+            await viewModel.sendMessage(text: text)
         }
     }
 }
