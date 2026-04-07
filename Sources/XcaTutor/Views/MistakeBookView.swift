@@ -4,31 +4,29 @@ struct MistakeBookView: View {
     @StateObject private var viewModel = MistakeBookViewModel()
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // 筛选标签
-                filterTabs
-                
-                // 错误列表
-                if viewModel.filteredMistakes.isEmpty {
-                    emptyState
-                } else {
-                    mistakeList
-                }
+        VStack(spacing: 0) {
+            // 筛选标签
+            filterTabs
+            
+            // 错误列表
+            if viewModel.filteredMistakes.isEmpty {
+                emptyState
+            } else {
+                mistakeList
             }
-            .navigationTitle("错题本 (\(viewModel.allMistakes.count))")
-            .toolbar {
-                ToolbarItem {
-                    Menu {
-                        Button("按时间排序") {
-                            viewModel.sortOrder = .date
-                        }
-                        Button("按类型排序") {
-                            viewModel.sortOrder = .type
-                        }
-                    } label: {
-                        Image(systemName: "arrow.up.arrow.down")
+        }
+        .navigationTitle("错题本 (\(viewModel.allMistakes.count))")
+        .toolbar {
+            ToolbarItem {
+                Menu {
+                    Button("按时间排序") {
+                        viewModel.sortOrder = .date
                     }
+                    Button("按类型排序") {
+                        viewModel.sortOrder = .type
+                    }
+                } label: {
+                    Image(systemName: "arrow.up.arrow.down")
                 }
             }
         }

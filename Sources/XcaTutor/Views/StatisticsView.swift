@@ -4,25 +4,23 @@ struct StatisticsView: View {
     @StateObject private var viewModel = StatisticsViewModel()
     
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // 总览卡片
-                    overviewSection
-                    
-                    // 学习趋势图（纯SwiftUI实现）
-                    trendChartSection
-                    
-                    // 本周统计
-                    weeklyStatsSection
-                    
-                    // 能力评估
-                    skillsSection
-                }
-                .padding(24)
+        ScrollView {
+            VStack(spacing: 24) {
+                // 总览卡片
+                overviewSection
+                
+                // 学习趋势图（纯SwiftUI实现）
+                trendChartSection
+                
+                // 本周统计
+                weeklyStatsSection
+                
+                // 能力评估
+                skillsSection
             }
-            .navigationTitle("学习统计")
+            .padding(24)
         }
+        .navigationTitle("学习统计")
     }
     
     // MARK: - Overview
