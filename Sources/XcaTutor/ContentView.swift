@@ -13,6 +13,7 @@ struct ContentView: View {
                 PracticeView(conversation: conversation)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color(NSColor.windowBackgroundColor))
+                    .environmentObject(appState)  // 确保传递 appState
                     .transition(.opacity)
                     .zIndex(100)
             }
@@ -31,6 +32,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $appState.showSceneSelection) {
             SceneSelectionView()
+                .environmentObject(appState)  // 传递 appState
                 .frame(minWidth: 800, minHeight: 600)
         }
     }
