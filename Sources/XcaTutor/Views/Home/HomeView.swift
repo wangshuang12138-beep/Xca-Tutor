@@ -374,11 +374,3 @@ struct PracticeStats {
     var weekOverWeekChange: Double = 0
     var accuracyChange: Int = 0
 }
-
-// MARK: - Preview
-
-#Preview {
-    HomeView()
-        .environmentObject(AppState())
-        .frame(width: 900, height: 700)
-}

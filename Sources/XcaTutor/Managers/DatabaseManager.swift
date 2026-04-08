@@ -420,6 +420,8 @@ class DatabaseManager {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: date)
+    }
+    
     func getWeeklyStats() -> PracticeStats {
         let stats = getStats(forDays: 7)
         

@@ -35,12 +35,12 @@ enum AppleColors {
     // Background
     static let background = Color(NSColor.windowBackgroundColor)
     static let secondaryBackground = Color(NSColor.controlBackgroundColor)
-    static let tertiaryBackground = Color(NSColor.tertiarySystemFill)
+    static let tertiaryBackground = Color(NSColor.underPageBackgroundColor)
     
     // Text
-    static let primaryText = Color(NSColor.label)
-    static let secondaryText = Color(NSColor.secondaryLabel)
-    static let tertiaryText = Color(NSColor.tertiaryLabel)
+    static let primaryText = Color.primary
+    static let secondaryText = Color.secondary
+    static let tertiaryText = Color.gray
     
     // Accent - Apple Blue
     static let accent = Color(hex: "007AFF")

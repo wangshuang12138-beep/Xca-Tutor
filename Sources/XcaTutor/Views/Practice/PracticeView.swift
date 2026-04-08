@@ -369,11 +369,3 @@ extension View {
         modifier(PressEventsModifier(onPress: onPress, onRelease: onRelease))
     }
 }
-
-// MARK: - Preview
-
-#Preview {
-    PracticeView()
-        .environmentObject(AppState())
-        .frame(width: 900, height: 700)
-}

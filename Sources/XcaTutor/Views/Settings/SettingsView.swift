@@ -289,34 +289,3 @@ struct SettingsRow<Content: View>: View {
         .padding(.vertical, Spacing.sm)
     }
 }
-
-// MARK: - Models
-
-enum ASRProvider: String, CaseIterable {
-    case doubao = "doubao"
-    case qwen = "qwen"
-    case openai = "openai"
-}
-
-// MARK: - Settings Manager (Stub)
-
-class SettingsManager: ObservableObject {
-    static let shared = SettingsManager()
-    
-    @Published var asrProvider: ASRProvider = .doubao
-    @Published var apiKey: String = ""
-    @Published var baseURL: String = "https://api.openai.com/v1"
-    @Published var chatModel: String = "gpt-4o"
-    @Published var temperature: Double = 0.7
-    @Published var voiceName: String = "alloy"
-    @Published var defaultDifficulty: String = "B1"
-    @Published var autoUpgrade: Bool = true
-    @Published var correctionStrictness: String = "normal"
-}
-
-// MARK: - Preview
-
-#Preview {
-    SettingsView()
-        .frame(width: 700, height: 800)
-}

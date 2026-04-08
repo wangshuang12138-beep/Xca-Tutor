@@ -1,5 +1,6 @@
 import SwiftUI
 
+@available(macOS 13.0, *)
 struct ReportView: View {
     let report: PracticeReport
     let conversation: Conversation
@@ -70,6 +71,7 @@ struct ReportTabSelector: View {
 
 // MARK: - Summary Tab
 
+@available(macOS 13.0, *)
 struct SummaryTab: View {
     let report: PracticeReport
     
@@ -197,7 +199,7 @@ struct MistakesTab: View {
     var body: some View {
         VStack(spacing: Spacing.lg) {
             if mistakes.isEmpty {
-                EmptyStateView(
+                ReportEmptyStateView(
                     icon: "checkmark.circle.fill",
                     title: "No mistakes found",
                     subtitle: "Great job! You performed very well in this conversation."
@@ -214,7 +216,7 @@ struct MistakesTab: View {
                 
                 VStack(spacing: Spacing.md) {
                     ForEach(mistakes) { mistake in
-                        MistakeDetailCard(mistake: mistake)
+                        ReportMistakeDetailCard(mistake: mistake)
                     }
                 }
             }
@@ -411,6 +413,7 @@ struct ScoreRow: View {
 
 // MARK: - Vocabulary Highlights
 
+@available(macOS 13.0, *)
 struct VocabularyHighlights: View {
     let words: [String]
     
@@ -484,9 +487,9 @@ struct SuggestionsSection: View {
     }
 }
 
-// MARK: - Mistake Detail Card
+// MARK: - Report Mistake Detail Card
 
-struct MistakeDetailCard: View {
+struct ReportMistakeDetailCard: View {
     let mistake: MistakeItem
     @State private var isExpanded = true
     
@@ -522,13 +525,13 @@ struct MistakeDetailCard: View {
                 VStack(alignment: .leading, spacing: Spacing.md) {
                     // Original vs Correction
                     VStack(alignment: .leading, spacing: Spacing.sm) {
-                        MistakeComparisonRow(
+                        ReportMistakeComparisonRow(
                             label: "Your sentence",
                             text: mistake.original,
                             color: AppleColors.error
                         )
                         
-                        MistakeComparisonRow(
+                        ReportMistakeComparisonRow(
                             label: "Correct",
                             text: mistake.correction,
                             color: AppleColors.success
@@ -552,9 +555,9 @@ struct MistakeDetailCard: View {
     }
 }
 
-// MARK: - Mistake Comparison Row
+// MARK: - Report Mistake Comparison Row
 
-struct MistakeComparisonRow: View {
+struct ReportMistakeComparisonRow: View {
     let label: String
     let text: String
     let color: Color
@@ -574,9 +577,9 @@ struct MistakeComparisonRow: View {
     }
 }
 
-// MARK: - Empty State View
+// MARK: - Report Empty State View
 
-struct EmptyStateView: View {
+struct ReportEmptyStateView: View {
     let icon: String
     let title: String
     let subtitle: String
@@ -601,6 +604,7 @@ struct EmptyStateView: View {
 
 // MARK: - Flow Layout
 
+@available(macOS 13.0, *)
 struct FlowLayout: Layout {
     var spacing: CGFloat = 8
     
@@ -668,38 +672,4 @@ struct MistakeItem: Identifiable {
     let original: String
     let correction: String
     let explanation: String
-}
-
-// MARK: - Preview
-
-#Preview {
-    ReportView(
-        report: PracticeReport(
-            overallLevel: "B1",
-            overallScore: 82,
-            taskCompletion: 80,
-            grammarAccuracy: 85,
-            fluency: 78,
-            vocabulary: 82,
-            mistakes: [
-                MistakeItem(
-                    title: "I'd like vs I want",
-                    original: "I want a steak",
-                    correction: "I'd like a steak, please",
-                    explanation: "Use 'I'd like' for polite requests in restaurants."
-                )
-            ],
-            vocabularyHighlights: ["recommend", "specialty", "check, please"],
-            suggestions: ["Try using more complex sentence structures", "Practice polite forms more"]
-        ),
-        conversation: Conversation(
-            id: UUID(),
-            sceneId: UUID(),
-            startTime: Date(),
-            endTime: nil,
-            difficulty: "B1",
-            duration: 15
-        )
-    )
-    .frame(width: 800, height: 900)
 }

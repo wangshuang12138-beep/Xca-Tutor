@@ -352,22 +352,3 @@ struct DifficultyBadge: View {
             .clipShape(Capsule())
     }
 }
-
-// MARK: - Models
-
-enum SceneCategory: String, CaseIterable, Identifiable {
-    case daily = "Daily"
-    case business = "Business"
-    case travel = "Travel"
-    case academic = "Academic"
-    
-    var id: String { rawValue }
-}
-
-// MARK: - Preview
-
-#Preview {
-    ContentView()
-        .environmentObject(AppState())
-        .frame(width: 1200, height: 800)
-}
