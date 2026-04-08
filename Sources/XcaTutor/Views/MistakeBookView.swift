@@ -1,306 +1,307 @@
 import SwiftUI
 
 struct MistakeBookView: View {
-    @StateObject private var viewModel = MistakeBookViewModel()
+    @EnvironmentObject var appState: AppState
+    @State private var mistakes: [MistakeRecord] = []
+    @State private var selectedCategory: MistakeCategory? = nil
     
     var body: some View {
-        VStack(spacing: 0) {
-            // 筛选标签
-            filterTabs
-            
-            // 错误列表
-            if viewModel.filteredMistakes.isEmpty {
-                emptyState
-            } else {
-                mistakeList
-            }
-        }
-        .navigationTitle("错题本 (\(viewModel.allMistakes.count))")
-        .toolbar {
-            ToolbarItem {
-                Menu {
-                    Button("按时间排序") {
-                        viewModel.sortOrder = .date
-                    }
-                    Button("按类型排序") {
-                        viewModel.sortOrder = .type
-                    }
-                } label: {
-                    Image(systemName: "arrow.up.arrow.down")
-                }
-            }
-        }
-    }
-    
-    // MARK: - Filter Tabs
-    private var filterTabs: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                FilterTab(
-                    title: "全部",
-                    count: viewModel.allMistakes.count,
-                    isSelected: viewModel.filter == .all
-                ) {
-                    viewModel.filter = .all
-                }
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: Spacing.xxl) {
+                // Header with stats
+                MistakeBookHeader(
+                    totalCount: mistakes.count,
+                    masteredCount: mistakes.filter { $0.isMastered }.count
+                )
                 
-                FilterTab(
-                    title: "语法",
-                    count: viewModel.grammarMistakes.count,
-                    isSelected: viewModel.filter == .grammar
-                ) {
-                    viewModel.filter = .grammar
-                }
+                // Category filters
+                MistakeCategoryFilter(
+                    selected: $selectedCategory,
+                    categories: MistakeCategory.allCases
+                )
                 
-                FilterTab(
-                    title: "词汇",
-                    count: viewModel.vocabularyMistakes.count,
-                    isSelected: viewModel.filter == .vocabulary
-                ) {
-                    viewModel.filter = .vocabulary
-                }
-                
-                FilterTab(
-                    title: "未掌握",
-                    count: viewModel.unmasteredMistakes.count,
-                    isSelected: viewModel.filter == .unmastered
-                ) {
-                    viewModel.filter = .unmastered
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-        }
-        .background(Color(NSColor.controlBackgroundColor))
-    }
-    
-    // MARK: - Empty State
-    private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "checkmark.circle")
-                .font(.system(size: 64))
-                .foregroundColor(.green)
-            
-            Text("太棒了！")
-                .font(.title2)
-                .fontWeight(.semibold)
-            
-            Text("当前筛选条件下没有错误记录")
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    
-    // MARK: - Mistake List
-    private var mistakeList: some View {
-        List {
-            ForEach(viewModel.filteredMistakes) { mistake in
-                MistakeBookRow(mistake: mistake) {
-                    viewModel.markAsMastered(mistake)
-                }
-            }
-        }
-        .listStyle(.plain)
-    }
-}
-
-// MARK: - Filter Tab
-
-struct FilterTab: View {
-    let title: String
-    let count: Int
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                Text(title)
-                Text("\(count)")
-                    .font(.caption)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(isSelected ? Color.white.opacity(0.3) : Color.gray.opacity(0.2))
-                    .cornerRadius(10)
-            }
-            .font(.subheadline.weight(isSelected ? .semibold : .regular))
-            .foregroundColor(isSelected ? .white : .primary)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(isSelected ? Color.blue : Color.clear)
-            .cornerRadius(20)
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Mistake Book Row
-
-struct MistakeBookRow: View {
-    let mistake: Mistake
-    let onMaster: () -> Void
-    
-    var icon: String {
-        switch mistake.type {
-        case .grammar: return "📝"
-        case .vocabulary: return "📚"
-        case .pronunciation: return "🎤"
-        }
-    }
-    
-    var typeText: String {
-        switch mistake.type {
-        case .grammar: return "语法"
-        case .vocabulary: return "词汇"
-        case .pronunciation: return "发音"
-        }
-    }
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // 头部
-            HStack {
-                Text(icon)
-                Text(typeText)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-                
-                if mistake.mastered {
-                    Label("已掌握", systemImage: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundColor(.green)
+                // Mistakes list
+                if filteredMistakes.isEmpty {
+                    EmptyStateView(
+                        icon: "checkmark.circle.fill",
+                        title: "No mistakes to review",
+                        subtitle: "Great job! Keep practicing to maintain your streak."
+                    )
                 } else {
-                    Text("练习 \(mistake.practiceCount)/3")
-                        .font(.caption)
-                        .foregroundColor(.orange)
+                    VStack(spacing: Spacing.md) {
+                        ForEach(filteredMistakes) { mistake in
+                            MistakeDetailCard(mistake: mistake)
+                        }
+                    }
                 }
             }
-            
-            // 错误内容
-            VStack(alignment: .leading, spacing: 8) {
-                Text("❌ \(mistake.originalText)")
-                    .foregroundColor(.red)
-                
-                Text("✅ \(mistake.correctedText)")
-                    .foregroundColor(.green)
-            }
-            
-            // 解释
-            Text(mistake.explanation)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .lineLimit(2)
-            
-            // 来源和时间
-            HStack {
-                Text("来自: 餐厅点餐")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-                
-                Text(formattedDate(mistake.createdAt))
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
-            
-            // 操作按钮
-            if !mistake.mastered {
-                HStack {
-                    Button("练习") {
-                        // 打开练习界面
-                    }
-                    .buttonStyle(.bordered)
-                    
-                    Spacer()
-                    
-                    Button("标记掌握") {
-                        onMaster()
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-            }
+            .padding(.horizontal, Spacing.xl)
+            .padding(.vertical, Spacing.xxl)
         }
-        .padding(16)
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(12)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 4)
-    }
-    
-    private func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM/dd"
-        return formatter.string(from: date)
-    }
-}
-
-// MARK: - View Model
-
-@MainActor
-class MistakeBookViewModel: ObservableObject {
-    @Published var allMistakes: [Mistake] = []
-    @Published var filter: MistakeFilter = .all
-    @Published var sortOrder: SortOrder = .date
-    
-    enum MistakeFilter {
-        case all, grammar, vocabulary, pronunciation, unmastered
-    }
-    
-    enum SortOrder {
-        case date, type
-    }
-    
-    var filteredMistakes: [Mistake] {
-        let filtered: [Mistake]
-        switch filter {
-        case .all:
-            filtered = allMistakes
-        case .grammar:
-            filtered = allMistakes.filter { $0.type == .grammar }
-        case .vocabulary:
-            filtered = allMistakes.filter { $0.type == .vocabulary }
-        case .pronunciation:
-            filtered = allMistakes.filter { $0.type == .pronunciation }
-        case .unmastered:
-            filtered = allMistakes.filter { !$0.mastered }
-        }
-        
-        switch sortOrder {
-        case .date:
-            return filtered.sorted { $0.createdAt > $1.createdAt }
-        case .type:
-            return filtered.sorted { $0.type.rawValue < $1.type.rawValue }
+        .background(AppleColors.background)
+        .onAppear {
+            loadMistakes()
         }
     }
     
-    var grammarMistakes: [Mistake] {
-        allMistakes.filter { $0.type == .grammar }
-    }
-    
-    var vocabularyMistakes: [Mistake] {
-        allMistakes.filter { $0.type == .vocabulary }
-    }
-    
-    var unmasteredMistakes: [Mistake] {
-        allMistakes.filter { !$0.mastered }
-    }
-    
-    init() {
-        loadMistakes()
+    private var filteredMistakes: [MistakeRecord] {
+        guard let category = selectedCategory else { return mistakes }
+        return mistakes.filter { $0.category == category }
     }
     
     private func loadMistakes() {
-        allMistakes = DatabaseManager.shared.getAllMistakes()
+        mistakes = DatabaseManager.shared.getUnmasteredMistakes()
+    }
+}
+
+// MARK: - Mistake Book Header
+
+struct MistakeBookHeader: View {
+    let totalCount: Int
+    let masteredCount: Int
+    
+    var progress: Double {
+        guard totalCount > 0 else { return 0 }
+        return Double(masteredCount) / Double(totalCount)
     }
     
-    func markAsMastered(_ mistake: Mistake) {
-        if DatabaseManager.shared.markMistakeAsMastered(id: mistake.id) {
-            if let index = allMistakes.firstIndex(where: { $0.id == mistake.id }) {
-                allMistakes[index].mastered = true
+    var body: some View {
+        VStack(spacing: Spacing.lg) {
+            HStack {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text("Mistake Book")
+                        .font(Typography.largeTitle)
+                        .foregroundStyle(AppleColors.primaryText)
+                    
+                    Text("Review and master your mistakes")
+                        .font(Typography.title2)
+                        .foregroundStyle(AppleColors.secondaryText)
+                }
+                
+                Spacer()
+                
+                // Progress ring
+                ZStack {
+                    Circle()
+                        .stroke(AppleColors.tertiaryBackground, lineWidth: 8)
+                        .frame(width: 80, height: 80)
+                    
+                    Circle()
+                        .trim(from: 0, to: progress)
+                        .stroke(AppleColors.success, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                        .frame(width: 80, height: 80)
+                        .rotationEffect(.degrees(-90))
+                    
+                    VStack(spacing: 0) {
+                        Text("\(masteredCount)/\(totalCount)")
+                            .font(Typography.callout.weight(.medium))
+                            .foregroundStyle(AppleColors.primaryText)
+                    }
+                }
             }
         }
     }
+}
+
+// MARK: - Mistake Category Filter
+
+struct MistakeCategoryFilter: View {
+    @Binding var selected: MistakeCategory?
+    let categories: [MistakeCategory]
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: Spacing.md) {
+                FilterChip(
+                    title: "All",
+                    isSelected: selected == nil
+                ) {
+                    selected = nil
+                }
+                
+                ForEach(categories) { category in
+                    FilterChip(
+                        title: category.rawValue,
+                        isSelected: selected == category
+                    ) {
+                        selected = category
+                    }
+                }
+            }
+            .padding(.vertical, Spacing.sm)
+        }
+    }
+}
+
+// MARK: - Mistake Detail Card
+
+struct MistakeDetailCard: View {
+    let mistake: MistakeRecord
+    @State private var isExpanded = false
+    @State private var isMastered: Bool
+    
+    init(mistake: MistakeRecord) {
+        self.mistake = mistake
+        _isMastered = State(initialValue: mistake.isMastered)
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header
+            Button(action: { isExpanded.toggle() }) {
+                HStack(spacing: Spacing.md) {
+                    // Mastery indicator
+                    Button(action: { isMastered.toggle() }) {
+                        Image(systemName: isMastered ? "checkmark.circle.fill" : "circle")
+                            .font(.system(size: 24))
+                            .foregroundStyle(isMastered ? AppleColors.success : AppleColors.tertiaryText)
+                    }
+                    .buttonStyle(.plain)
+                    
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
+                        Text(mistake.title)
+                            .font(Typography.body.weight(.medium))
+                            .foregroundStyle(AppleColors.primaryText)
+                        
+                        Text(mistake.category.rawValue)
+                            .font(Typography.caption2)
+                            .foregroundStyle(AppleColors.secondaryText)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(AppleColors.secondaryText)
+                }
+                .padding(Spacing.lg)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            
+            if isExpanded {
+                Divider().padding(.horizontal, Spacing.lg)
+                
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    // Original vs Correction
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        MistakeComparisonRow(
+                            label: "Your sentence",
+                            text: mistake.original,
+                            color: AppleColors.error
+                        )
+                        
+                        MistakeComparisonRow(
+                            label: "Correct",
+                            text: mistake.correction,
+                            color: AppleColors.success
+                        )
+                    }
+                    
+                    // Explanation
+                    if !mistake.explanation.isEmpty {
+                        Text(mistake.explanation)
+                            .font(Typography.callout)
+                            .foregroundStyle(AppleColors.secondaryText)
+                            .padding(.top, Spacing.sm)
+                    }
+                    
+                    // Practice button
+                    Button(action: { /* practice */ }) {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                            Text("Practice This")
+                        }
+                        .font(Typography.callout.weight(.medium))
+                        .foregroundStyle(AppleColors.accent)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, Spacing.sm)
+                }
+                .padding(Spacing.lg)
+            }
+        }
+        .background(AppleColors.secondaryBackground)
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.lg))
+        .animation(.spring(response: 0.3), value: isExpanded)
+    }
+}
+
+// MARK: - Mistake Comparison Row
+
+struct MistakeComparisonRow: View {
+    let label: String
+    let text: String
+    let color: Color
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: Spacing.sm) {
+            Text(label + ":")
+                .font(Typography.caption)
+                .foregroundStyle(AppleColors.tertiaryText)
+                .frame(width: 90, alignment: .leading)
+            
+            Text("\"\(text)\"")
+                .font(Typography.callout)
+                .foregroundStyle(color)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+// MARK: - Empty State View
+
+struct EmptyStateView: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    
+    var body: some View {
+        VStack(spacing: Spacing.lg) {
+            Image(systemName: icon)
+                .font(.system(size: 64))
+                .foregroundStyle(AppleColors.success)
+            
+            Text(title)
+                .font(Typography.title2)
+                .foregroundStyle(AppleColors.primaryText)
+            
+            Text(subtitle)
+                .font(Typography.callout)
+                .foregroundStyle(AppleColors.secondaryText)
+                .multilineTextAlignment(.center)
+        }
+        .padding(Spacing.xxl)
+        .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - Models
+
+enum MistakeCategory: String, CaseIterable, Identifiable {
+    case grammar = "Grammar"
+    case vocabulary = "Vocabulary"
+    case pronunciation = "Pronunciation"
+    case fluency = "Fluency"
+    
+    var id: String { rawValue }
+}
+
+struct MistakeRecord: Identifiable {
+    let id = UUID()
+    let title: String
+    let original: String
+    let correction: String
+    let explanation: String
+    let category: MistakeCategory
+    var isMastered: Bool
+    let createdAt: Date
+}
+
+// MARK: - Preview
+
+#Preview {
+    MistakeBookView()
+        .environmentObject(AppState())
+        .frame(width: 900, height: 700)
 }

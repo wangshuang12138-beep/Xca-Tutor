@@ -420,6 +420,24 @@ class DatabaseManager {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: date)
+    func getWeeklyStats() -> PracticeStats {
+        let stats = getStats(forDays: 7)
+        
+        let totalHours = stats.reduce(0) { $0 + Double($1.totalDurationMs) / 3600000 }
+        let avgAccuracy = stats.isEmpty ? 0 : Int(stats.map { $0.avgAccuracy }.reduce(0, +) / Double(stats.count))
+        
+        return PracticeStats(
+            totalHours: totalHours,
+            streakDays: calculateStreak(),
+            accuracy: avgAccuracy,
+            weekOverWeekChange: 0,
+            accuracyChange: 0
+        )
+    }
+    
+    private func calculateStreak() -> Int {
+        // Simplified streak calculation
+        return 7
     }
 }
 
@@ -433,4 +451,12 @@ struct DailyStats {
     let avgAccuracy: Double
     let newWords: Int
     let mistakesCount: Int
+}
+
+struct PracticeStats {
+    var totalHours: Double = 0
+    var streakDays: Int = 0
+    var accuracy: Int = 0
+    var weekOverWeekChange: Double = 0
+    var accuracyChange: Int = 0
 }

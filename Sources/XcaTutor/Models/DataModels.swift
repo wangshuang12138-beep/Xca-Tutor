@@ -1,5 +1,49 @@
 import Foundation
 
+// MARK: - Conversation Extensions
+
+extension Conversation {
+    var duration: Int {
+        guard let endTime = endTime else {
+            return Int(Date().timeIntervalSince(startTime) / 60)
+        }
+        return Int(endTime.timeIntervalSince(startTime) / 60)
+    }
+    
+    var sceneName: String {
+        return SceneRepository.shared.getScene(id: UUID(uuidString: sceneId) ?? UUID())?.name ?? "Practice"
+    }
+}
+
+// MARK: - Scene Extensions
+
+extension Scene {
+    var difficultyRange: String {
+        return difficulty
+    }
+    
+    var category: SceneCategory {
+        if name.contains("Restaurant") || name.contains("Hotel") || name.contains("Airport") {
+            return .travel
+        } else if name.contains("Interview") || name.contains("Meeting") {
+            return .business
+        }
+        return .daily
+    }
+    
+    var estimatedDuration: Int {
+        return 15
+    }
+}
+
+// MARK: - Message Extensions
+
+extension Message {
+    var role: MessageRole {
+        return MessageRole(rawValue: roleString) ?? .user
+    }
+}
+
 // MARK: - Data Models
 
 struct Conversation: Identifiable, Codable {
@@ -26,6 +70,16 @@ struct Conversation: Identifiable, Codable {
         self.status = status
         self.messages = messages
     }
+    
+    init(id: UUID, sceneId: UUID, startTime: Date, endTime: Date?, difficulty: String, duration: Int) {
+        self.id = id.uuidString
+        self.sceneId = sceneId.uuidString
+        self.startTime = startTime
+        self.endTime = endTime
+        self.difficulty = difficulty
+        self.status = endTime == nil ? .ongoing : .completed
+        self.messages = []
+    }
 }
 
 enum ConversationStatus: String, Codable {
@@ -34,11 +88,34 @@ enum ConversationStatus: String, Codable {
 
 struct Message: Identifiable, Codable {
     let id: String
-    let role: MessageRole
+    let roleString: String
     let content: String
     let timestamp: Date
     var audioFile: String?
     var durationMs: Int?
+    
+    init(id: String = UUID().uuidString,
+         role: MessageRole,
+         content: String,
+         timestamp: Date = Date(),
+         audioFile: String? = nil,
+         durationMs: Int? = nil) {
+        self.id = id
+        self.roleString = role.rawValue
+        self.content = content
+        self.timestamp = timestamp
+        self.audioFile = audioFile
+        self.durationMs = durationMs
+    }
+    
+    init(role: MessageRole, content: String) {
+        self.id = UUID().uuidString
+        self.roleString = role.rawValue
+        self.content = content
+        self.timestamp = Date()
+        self.audioFile = nil
+        self.durationMs = nil
+    }
 }
 
 enum MessageRole: String, Codable {
@@ -127,4 +204,15 @@ enum CEFRLevel: String, CaseIterable {
         case .c1, .c2: return "levelC"
         }
     }
+}
+
+// MARK: - Scene Category
+
+enum SceneCategory: String, CaseIterable, Identifiable {
+    case daily = "Daily"
+    case business = "Business"
+    case travel = "Travel"
+    case academic = "Academic"
+    
+    var id: String { rawValue }
 }

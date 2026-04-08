@@ -230,4 +230,16 @@ class SceneRepository {
             isBuiltin: true
         )
     ]
+    
+    func getAllScenes() -> [Scene] {
+        return builtinScenes
+    }
+    
+    func getScene(id: UUID) -> Scene? {
+        return builtinScenes.first { $0.id == id.uuidString }
+    }
+    
+    func getScene(id: String) -> Scene? {
+        return builtinScenes.first { $0.id == id }
+    }
 }

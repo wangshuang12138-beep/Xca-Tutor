@@ -5,7 +5,14 @@ import Foundation
 struct UserSettings: Codable {
     var apiKey: String
     var useProxy: Bool
-    var proxyBaseURL: String  // 代理 API 地址，如 https://oa.api2d.net
+    var proxyBaseURL: String
+    
+    // ASR Provider
+    var asrProvider: String
+    
+    // Doubao ASR (New Console)
+    var doubaoAppId: String
+    var doubaoApiKey: String
     
     // 模型参数
     var chatModel: String
@@ -26,7 +33,10 @@ struct UserSettings: Codable {
     static let `default` = UserSettings(
         apiKey: "",
         useProxy: false,
-        proxyBaseURL: "https://oa.api2d.net",
+        proxyBaseURL: "https://api.openai.com/v1",
+        asrProvider: "doubao",
+        doubaoAppId: "",
+        doubaoApiKey: "",
         chatModel: "gpt-4o",
         temperature: 0.7,
         maxTokens: 2000,
@@ -34,10 +44,18 @@ struct UserSettings: Codable {
         whisperModel: "whisper-1",
         defaultDifficulty: "B1",
         autoUpgrade: true,
-        correctionStrictness: "standard",
+        correctionStrictness: "normal",
         theme: "auto",
         language: "zh-CN"
     )
+}
+
+// MARK: - ASR Provider
+
+enum ASRProvider: String, CaseIterable {
+    case doubao = "doubao"
+    case qwen = "qwen"
+    case openai = "openai"
 }
 
 // MARK: - Settings Manager
@@ -49,18 +67,10 @@ class SettingsManager: ObservableObject {
     
     private let settingsKey = "com.xca.tutor.settings"
     private let keychainKey = "com.xca.tutor.apikey"
+    private let doubaoKeychainKey = "com.xca.tutor.doubao.apikey"
     
     private init() {
         loadSettings()
-        
-        // 预填充 API2D 配置（如果 API Key 为空）
-        if settings.apiKey.isEmpty || !settings.apiKey.hasPrefix("fk-") {
-            settings.apiKey = "fk239252-gcj2PsZit6oB8Rb1AFotIyaGLspGEpba"
-            settings.useProxy = true
-            settings.proxyBaseURL = "https://oa.api2d.net"
-            saveSettings()
-            print("✅ 已自动配置 API2D 凭据")
-        }
     }
     
     // MARK: - Settings Persistence
@@ -71,9 +81,12 @@ class SettingsManager: ObservableObject {
             settings = decoded
         }
         
-        // 从 Keychain 加载 API Key
+        // Load API Keys from Keychain
         if let apiKey = KeychainManager.shared.get(key: keychainKey) {
             settings.apiKey = apiKey
+        }
+        if let doubaoApiKey = KeychainManager.shared.get(key: doubaoKeychainKey) {
+            settings.doubaoApiKey = doubaoApiKey
         }
     }
     
@@ -82,22 +95,91 @@ class SettingsManager: ObservableObject {
             UserDefaults.standard.set(encoded, forKey: settingsKey)
         }
         
-        // API Key 单独存 Keychain
+        // Save API Keys to Keychain
         KeychainManager.shared.set(key: keychainKey, value: settings.apiKey)
+        KeychainManager.shared.set(key: doubaoKeychainKey, value: settings.doubaoApiKey)
+    }
+    
+    // MARK: - Convenience Properties
+    
+    var baseURL: String {
+        settings.useProxy ? settings.proxyBaseURL : "https://api.openai.com/v1"
+    }
+    
+    var proxyBaseURL: String {
+        get { settings.proxyBaseURL }
+        set { settings.proxyBaseURL = newValue }
+    }
+    
+    var apiKey: String {
+        get { settings.apiKey }
+        set { settings.apiKey = newValue }
+    }
+    
+    var chatModel: String {
+        get { settings.chatModel }
+        set { settings.chatModel = newValue }
+    }
+    
+    var temperature: Double {
+        get { settings.temperature }
+        set { settings.temperature = newValue }
+    }
+    
+    var maxTokens: Int {
+        get { settings.maxTokens }
+        set { settings.maxTokens = newValue }
+    }
+    
+    var voiceName: String {
+        get { settings.voiceName }
+        set { settings.voiceName = newValue }
+    }
+    
+    var defaultDifficulty: String {
+        get { settings.defaultDifficulty }
+        set { settings.defaultDifficulty = newValue }
+    }
+    
+    var autoUpgrade: Bool {
+        get { settings.autoUpgrade }
+        set { settings.autoUpgrade = newValue }
+    }
+    
+    var correctionStrictness: String {
+        get { settings.correctionStrictness }
+        set { settings.correctionStrictness = newValue }
+    }
+    
+    var asrProvider: ASRProvider {
+        get { ASRProvider(rawValue: settings.asrProvider) ?? .doubao }
+        set { settings.asrProvider = newValue.rawValue }
+    }
+    
+    var doubaoAppId: String {
+        get { settings.doubaoAppId }
+        set { settings.doubaoAppId = newValue }
+    }
+    
+    var doubaoApiKey: String {
+        get { settings.doubaoApiKey }
+        set { settings.doubaoApiKey = newValue }
+    }
+    
+    var hasDoubaoCredentials: Bool {
+        !settings.doubaoAppId.isEmpty && !settings.doubaoApiKey.isEmpty
     }
     
     // MARK: - Validation
     
     var isValid: Bool {
-        // 支持 OpenAI (sk-) 和 API2D (fk-) 格式的 key
-        !settings.apiKey.isEmpty && (settings.apiKey.hasPrefix("sk-") || settings.apiKey.hasPrefix("fk-"))
+        !settings.apiKey.isEmpty
     }
     
     func validateAPIKey() async -> Bool {
         guard isValid else { return false }
         
         do {
-            let baseURL = settings.useProxy ? settings.proxyBaseURL : "https://api.openai.com/v1"
             let service = OpenAIService(apiKey: settings.apiKey, baseURL: baseURL)
             _ = try await service.chat(
                 messages: [.init(role: "user", content: "Hi")],

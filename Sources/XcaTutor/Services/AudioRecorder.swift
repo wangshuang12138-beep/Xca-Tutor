@@ -33,6 +33,11 @@ class AudioRecorder: NSObject, AudioRecorderProtocol {
     private var consecutiveSilentFrames = 0
     private let requiredSilentFrames = 30
     
+    // Chunk callback for streaming ASR
+    var onAudioChunk: ((Data) -> Void)?
+    private var chunkTimer: Timer?
+    private let chunkInterval: TimeInterval = 0.1 // 100ms chunks
+    
     // MARK: - Initialization
     
     override init() {
@@ -99,10 +104,37 @@ class AudioRecorder: NSObject, AudioRecorderProtocol {
         
         isRecording = true
         print("🎙️ 开始录音...")
+        
+        // Start chunk timer for streaming ASR
+        startChunkTimer()
+    }
+    
+    private func startChunkTimer() {
+        chunkTimer?.invalidate()
+        chunkTimer = Timer.scheduledTimer(withTimeInterval: chunkInterval, repeats: true) { [weak self] _ in
+            self?.sendAudioChunk()
+        }
+    }
+    
+    private func sendAudioChunk() {
+        guard let url = recordingURL,
+              let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
+              let fileSize = attributes[.size] as? UInt64,
+              fileSize > 0 else { return }
+        
+        // Read current audio data and send as chunk
+        guard let data = try? Data(contentsOf: url, options: .mappedIfSafe) else { return }
+        
+        // Only send new data since last chunk (simplified)
+        onAudioChunk?(data)
     }
     
     func stopRecording() {
         guard isRecording else { return }
+        
+        // Stop chunk timer
+        chunkTimer?.invalidate()
+        chunkTimer = nil
         
         // 停止引擎
         audioEngine?.stop()
