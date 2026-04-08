@@ -12,6 +12,7 @@ protocol ASRServiceProtocol {
 // MARK: - ASR Service Factory
 
 class ASRServiceFactory {
+    @MainActor
     static func createService() -> ASRServiceProtocol? {
         let settings = SettingsManager.shared
         

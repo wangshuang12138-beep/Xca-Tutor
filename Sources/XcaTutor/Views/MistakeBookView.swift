@@ -159,7 +159,7 @@ struct MistakeDetailCard: View {
                     .buttonStyle(.plain)
                     
                     VStack(alignment: .leading, spacing: Spacing.xs) {
-                        Text(mistake.title)
+                        Text(mistake.originalText)
                             .font(Typography.body.weight(.medium))
                             .foregroundStyle(AppleColors.primaryText)
                         

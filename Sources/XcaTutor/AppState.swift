@@ -12,12 +12,8 @@ class AppState: ObservableObject {
     
     func startPractice(sceneId: String) {
         currentConversation = Conversation(
-            id: sceneId,
             sceneId: sceneId,
-            startTime: Date(),
-            endTime: nil,
-            difficulty: "B1",
-            duration: 0
+            difficulty: "B1"
         )
     }
     

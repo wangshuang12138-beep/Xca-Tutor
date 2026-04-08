@@ -3,7 +3,6 @@ import ObjectiveC
 
 // MARK: - Doubao ASR Service (New Console - API Key)
 
-@MainActor
 class DoubaoASRService: NSObject, ObservableObject, ASRServiceProtocol {
     // MARK: - Published
     @Published var isConnected = false
@@ -37,6 +36,7 @@ class DoubaoASRService: NSObject, ObservableObject, ASRServiceProtocol {
     
     // MARK: - Connection
     
+    @MainActor
     func connect() async throws {
         // New console WebSocket endpoint for streaming ASR v3
         let wsUrl = "wss://openspeech.bytedance.com/api/v3/sauc/bigmodel"
@@ -68,6 +68,7 @@ class DoubaoASRService: NSObject, ObservableObject, ASRServiceProtocol {
     
     // MARK: - Recognition
     
+    @MainActor
     func startRecognition() throws {
         guard isConnected else {
             throw ASRError.notConnected
@@ -114,6 +115,7 @@ class DoubaoASRService: NSObject, ObservableObject, ASRServiceProtocol {
         try audioRecorder?.startRecording()
     }
     
+    @MainActor
     func stopRecognition() -> String {
         isRecording = false
         audioRecorder?.stopRecording()
@@ -131,8 +133,9 @@ class DoubaoASRService: NSObject, ObservableObject, ASRServiceProtocol {
         sendJSON(message)
         
         // Disconnect after a short delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            self?.disconnect()
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+            disconnect()
         }
         
         return recognitionResult
@@ -140,6 +143,7 @@ class DoubaoASRService: NSObject, ObservableObject, ASRServiceProtocol {
     
     // MARK: - Private Methods
     
+    @MainActor
     private func sendAudioChunk(_ data: Data) {
         guard isConnected else { return }
         
@@ -154,6 +158,7 @@ class DoubaoASRService: NSObject, ObservableObject, ASRServiceProtocol {
         sendJSON(message)
     }
     
+    @MainActor
     private func sendJSON(_ dict: [String: Any]) {
         guard let data = try? JSONSerialization.data(withJSONObject: dict),
               let string = String(data: data, encoding: .utf8) else {
@@ -162,32 +167,33 @@ class DoubaoASRService: NSObject, ObservableObject, ASRServiceProtocol {
         
         webSocketTask?.send(.string(string)) { [weak self] error in
             if let error = error {
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     self?.onError?(error)
                 }
             }
         }
     }
     
+    @MainActor
     private func receiveMessage() {
         webSocketTask?.receive { [weak self] result in
             guard let self = self else { return }
             
             switch result {
             case .success(let message):
-                self.handleMessage(message)
-                // Continue receiving
-                self.receiveMessage()
+                Task { @MainActor in
+                    self.handleMessage(message)
+                    self.receiveMessage()
+                }
                 
             case .failure(let error):
-                DispatchQueue.main.async {
-                    self.isConnected = false
-                    self.onError?(error)
-                }
+                self.isConnected = false
+                self.onError?(error)
             }
         }
     }
     
+    @MainActor
     private func handleMessage(_ message: URLSessionWebSocketTask.Message) {
         guard case .string(let text) = message,
               let data = text.data(using: .utf8),
@@ -200,9 +206,7 @@ class DoubaoASRService: NSObject, ObservableObject, ASRServiceProtocol {
            let code = header["code"] as? Int,
            code != 0 {
             let message = header["message"] as? String ?? "Unknown error"
-            DispatchQueue.main.async { [weak self] in
-                self?.onError?(ASRError.apiError(message))
-            }
+            onError?(ASRError.apiError(message))
             return
         }
         
@@ -211,13 +215,12 @@ class DoubaoASRService: NSObject, ObservableObject, ASRServiceProtocol {
            let result = payload["result"] as? [String: Any],
            let text = result["text"] as? String {
             
-            DispatchQueue.main.async { [weak self] in
-                self?.recognitionResult = text
-                self?.onRecognitionResult?(text)
-            }
+            recognitionResult = text
+            onRecognitionResult?(text)
         }
     }
     
+    @MainActor
     func disconnect() {
         webSocketTask?.cancel(with: .normalClosure, reason: nil)
         isConnected = false
@@ -227,18 +230,15 @@ class DoubaoASRService: NSObject, ObservableObject, ASRServiceProtocol {
 
 // MARK: - WebSocket Delegate
 
+@MainActor
 extension DoubaoASRService: URLSessionWebSocketDelegate {
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
-        DispatchQueue.main.async {
-            self.isConnected = true
-        }
+        isConnected = true
     }
     
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
-        DispatchQueue.main.async {
-            self.isConnected = false
-            self.isRecording = false
-        }
+        isConnected = false
+        isRecording = false
     }
 }
 

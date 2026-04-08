@@ -154,8 +154,10 @@ struct Mistake: Identifiable, Codable {
     let createdAt: Date
 }
 
-enum MistakeType: String, Codable {
+enum MistakeType: String, Codable, CaseIterable, Identifiable {
     case grammar, vocabulary, pronunciation
+    
+    var id: String { rawValue }
 }
 
 struct ReviewReport: Identifiable, Codable {
