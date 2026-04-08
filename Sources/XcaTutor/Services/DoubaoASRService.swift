@@ -4,7 +4,7 @@ import ObjectiveC
 // MARK: - Doubao ASR Service (New Console - API Key)
 
 @MainActor
-class DoubaoASRService: NSObject, ObservableObject {
+class DoubaoASRService: NSObject, ObservableObject, ASRServiceProtocol {
     // MARK: - Published
     @Published var isConnected = false
     @Published var isRecording = false
@@ -264,18 +264,5 @@ enum ASRError: Error, LocalizedError {
         case .apiError(let message):
             return "API 错误: \(message)"
         }
-    }
-}
-
-// MARK: - Audio Recorder Extension
-
-extension AudioRecorder {
-    var onAudioChunk: ((Data) -> Void)? {
-        get { objc_getAssociatedObject(self, &AssociatedKeys.onAudioChunk) as? (Data) -> Void }
-        set { objc_setAssociatedObject(self, &AssociatedKeys.onAudioChunk, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC) }
-    }
-    
-    private struct AssociatedKeys {
-        static var onAudioChunk = "onAudioChunk"
     }
 }

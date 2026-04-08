@@ -10,9 +10,9 @@ class AppState: ObservableObject {
     
     // MARK: - Navigation Methods
     
-    func startPractice(sceneId: UUID) {
+    func startPractice(sceneId: String) {
         currentConversation = Conversation(
-            id: UUID(),
+            id: sceneId,
             sceneId: sceneId,
             startTime: Date(),
             endTime: nil,

@@ -15,10 +15,12 @@ struct StatisticsView: View {
                 KeyMetricsRow()
                 
                 // Chart section
-                ChartSection(
-                    data: weeklyData,
-                    selectedMetric: $selectedMetric
-                )
+                if #available(macOS 13.0, *) {
+                    ChartSection(
+                        data: weeklyData,
+                        selectedMetric: $selectedMetric
+                    )
+                }
                 
                 // Skills breakdown
                 SkillsBreakdownSection()
@@ -152,6 +154,7 @@ struct LargeMetricCard: View {
 
 // MARK: - Chart Section
 
+@available(macOS 13.0, *)
 struct ChartSection: View {
     let data: [PracticeData]
     @Binding var selectedMetric: MetricType
@@ -388,11 +391,4 @@ struct PracticeData: Identifiable {
         formatter.dateFormat = "E"
         return formatter.string(from: date)
     }
-}
-
-// MARK: - Preview
-
-#Preview {
-    StatisticsView()
-        .frame(width: 900, height: 1000)
 }

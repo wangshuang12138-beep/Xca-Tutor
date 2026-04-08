@@ -2,8 +2,8 @@ import SwiftUI
 
 struct MistakeBookView: View {
     @EnvironmentObject var appState: AppState
-    @State private var mistakes: [MistakeRecord] = []
-    @State private var selectedCategory: MistakeCategory? = nil
+    @State private var mistakes: [Mistake] = []
+    @State private var selectedCategory: MistakeType? = nil
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -11,13 +11,13 @@ struct MistakeBookView: View {
                 // Header with stats
                 MistakeBookHeader(
                     totalCount: mistakes.count,
-                    masteredCount: mistakes.filter { $0.isMastered }.count
+                    masteredCount: mistakes.filter { $0.mastered }.count
                 )
                 
                 // Category filters
                 MistakeCategoryFilter(
                     selected: $selectedCategory,
-                    categories: MistakeCategory.allCases
+                    categories: MistakeType.allCases
                 )
                 
                 // Mistakes list
@@ -44,9 +44,9 @@ struct MistakeBookView: View {
         }
     }
     
-    private var filteredMistakes: [MistakeRecord] {
+    private var filteredMistakes: [Mistake] {
         guard let category = selectedCategory else { return mistakes }
-        return mistakes.filter { $0.category == category }
+        return mistakes.filter { $0.type == category }
     }
     
     private func loadMistakes() {
@@ -106,8 +106,8 @@ struct MistakeBookHeader: View {
 // MARK: - Mistake Category Filter
 
 struct MistakeCategoryFilter: View {
-    @Binding var selected: MistakeCategory?
-    let categories: [MistakeCategory]
+    @Binding var selected: MistakeType?
+    let categories: [MistakeType]
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -136,13 +136,13 @@ struct MistakeCategoryFilter: View {
 // MARK: - Mistake Detail Card
 
 struct MistakeDetailCard: View {
-    let mistake: MistakeRecord
+    let mistake: Mistake
     @State private var isExpanded = false
     @State private var isMastered: Bool
     
-    init(mistake: MistakeRecord) {
+    init(mistake: Mistake) {
         self.mistake = mistake
-        _isMastered = State(initialValue: mistake.isMastered)
+        _isMastered = State(initialValue: mistake.mastered)
     }
     
     var body: some View {
@@ -163,7 +163,7 @@ struct MistakeDetailCard: View {
                             .font(Typography.body.weight(.medium))
                             .foregroundStyle(AppleColors.primaryText)
                         
-                        Text(mistake.category.rawValue)
+                        Text(mistake.type.rawValue)
                             .font(Typography.caption2)
                             .foregroundStyle(AppleColors.secondaryText)
                     }
@@ -187,13 +187,13 @@ struct MistakeDetailCard: View {
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         MistakeComparisonRow(
                             label: "Your sentence",
-                            text: mistake.original,
+                            text: mistake.originalText,
                             color: AppleColors.error
                         )
                         
                         MistakeComparisonRow(
                             label: "Correct",
-                            text: mistake.correction,
+                            text: mistake.correctedText,
                             color: AppleColors.success
                         )
                     }
@@ -285,23 +285,4 @@ enum MistakeCategory: String, CaseIterable, Identifiable {
     case fluency = "Fluency"
     
     var id: String { rawValue }
-}
-
-struct MistakeRecord: Identifiable {
-    let id = UUID()
-    let title: String
-    let original: String
-    let correction: String
-    let explanation: String
-    let category: MistakeCategory
-    var isMastered: Bool
-    let createdAt: Date
-}
-
-// MARK: - Preview
-
-#Preview {
-    MistakeBookView()
-        .environmentObject(AppState())
-        .frame(width: 900, height: 700)
 }

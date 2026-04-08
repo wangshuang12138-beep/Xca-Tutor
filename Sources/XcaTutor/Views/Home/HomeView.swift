@@ -364,13 +364,3 @@ struct MistakesPreview: View {
         }
     }
 }
-
-// MARK: - Models
-
-struct PracticeStats {
-    var totalHours: Double = 0
-    var streakDays: Int = 0
-    var accuracy: Int = 0
-    var weekOverWeekChange: Double = 0
-    var accuracyChange: Int = 0
-}

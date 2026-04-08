@@ -57,7 +57,9 @@ struct PracticeView: View {
         }
         .sheet(isPresented: $viewModel.showReport) {
             if let report = viewModel.report {
-                ReportView(report: report, conversation: viewModel.conversation)
+                if #available(macOS 13.0, *) {
+                    ReportView(report: report, conversation: viewModel.conversation)
+                }
             }
         }
     }

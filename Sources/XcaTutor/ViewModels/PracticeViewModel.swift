@@ -245,7 +245,7 @@ class PracticeViewModel: ObservableObject {
         
         // Save messages
         for message in messages {
-            _ = DatabaseManager.shared.saveMessage(message, conversationId: conversation.id.uuidString)
+            _ = DatabaseManager.shared.saveMessage(message, conversationId: conversation.id)
         }
         
         // Generate report
